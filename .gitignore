@@ -1,3 +1,5 @@
+blaseball-log-*.json
+
 # Logs
 logs
 *.log

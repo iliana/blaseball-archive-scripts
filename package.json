@@ -1,0 +1,19 @@
+{
+  "name": "blaseball-archive-script",
+  "version": "1.0.0",
+  "description": "Scripts for periodically archiving public data from blaseball.com",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "iliana etaoin <iliana@buttslol.net>",
+  "license": "MIT",
+  "dependencies": {
+    "socket.io-client": "^2.3.0"
+  },
+  "devDependencies": {
+    "eslint": "^7.5.0",
+    "eslint-config-airbnb-base": "^14.2.0",
+    "eslint-plugin-import": "^2.22.0"
+  }
+}
