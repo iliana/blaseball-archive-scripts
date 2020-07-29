@@ -9,6 +9,9 @@
   "author": "iliana etaoin <iliana@buttslol.net>",
   "license": "MIT",
   "dependencies": {
+    "bottleneck": "^2.19.5",
+    "lodash.chunk": "^4.2.0",
+    "node-fetch": "^2.6.0",
     "socket.io-client": "^2.3.0"
   },
   "devDependencies": {
