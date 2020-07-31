@@ -12,7 +12,8 @@
     "bottleneck": "^2.19.5",
     "lodash.chunk": "^4.2.0",
     "node-fetch": "^2.6.0",
-    "socket.io-client": "^2.3.0"
+    "socket.io-client": "^2.3.0",
+    "uuid": "^8.3.0"
   },
   "devDependencies": {
     "eslint": "^7.5.0",
