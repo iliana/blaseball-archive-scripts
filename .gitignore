@@ -1,4 +1,5 @@
 blaseball-*.json
+blaseball-*.json.gz
 
 # Logs
 logs
