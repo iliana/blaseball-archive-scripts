@@ -1,6 +1,6 @@
 const { createGzip } = require('zlib');
 const { createReadStream, createWriteStream, unlink } = require('fs');
-const io = require('socket.io-client');
+const { EventSource } = require('launchdarkly-eventsource');
 const { pipeline } = require('stream');
 const { v4: uuidv4 } = require('uuid');
 
@@ -55,21 +55,28 @@ function newStream() {
 }
 newStream();
 
-const socket = io('https://blaseball.com');
+const evtSource = new EventSource('https://www.blaseball.com/events/streamGameData', {
+  initialRetryDelayMillis: 2000,
+  maxBackoffMillis: 5000
+});
 let latestGameDataState = {};
-socket.on('gameDataUpdate', (data) => {
+evtSource.on('message', (evt) => {
+  const data = JSON.parse(evt.data).value;
+  const { lastUpdateTime, ...dataExcludingLastUpdateTime } = data;
+
   // check if updated state data exists
-  if (JSON.stringify(data) !== JSON.stringify(latestGameDataState)) {
-    latestGameDataState = data;
+  if (JSON.stringify(dataExcludingLastUpdateTime) !== JSON.stringify(latestGameDataState)) {
+    latestGameDataState = dataExcludingLastUpdateTime;
 
     stream.write(
       `${JSON.stringify({
-        ...latestGameDataState,
+        ...data,
         clientMeta: {
-          timestamp: Date.now(),
+          timestamp: lastUpdateTime,
           processId: clientProcessId,
-        },
-      })}\n`,
+          lastEventId: evt.lastEventId
+        }
+      })}\n`
     );
   }
 
@@ -78,4 +85,12 @@ socket.on('gameDataUpdate', (data) => {
   if (Date.now() - batchStartTimestamp > ONE_HOUR) {
     stream.end();
   }
+});
+
+evtSource.on('error', (evt) => {
+  console.log(`${evt.type} in batch process ${batchStartTimestamp}: ${evt.message}`);
+});
+
+evtSource.on('retrying', (evt) => {
+  console.log(`${evt.type} in batch process ${batchStartTimestamp}`);
 });
