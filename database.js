@@ -9,7 +9,7 @@ const clientProcessId = uuidv4();
 const limiter = new Bottleneck({ maxConcurrent: 1, minTime: 200 });
 
 module.exports.get = async (stream, endpoint, params) => {
-  const url = new URL(`https://blaseball.com/database/${endpoint}`);
+  const url = new URL(`https://www.blaseball.com/database/${endpoint}`);
   if (params) {
     Object.entries(params).forEach(([name, value]) => {
       url.searchParams.set(name, Array.isArray(value) ? value.join(',') : value);
