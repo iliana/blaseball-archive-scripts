@@ -57,7 +57,10 @@ newStream();
 
 const evtSource = new EventSource('https://www.blaseball.com/events/streamGameData', {
   initialRetryDelayMillis: 2000,
-  maxBackoffMillis: 5000
+  maxBackoffMillis: 5000,
+  errorFilter: function errorFilter() {
+    return true;
+  },
 });
 let latestGameDataState = {};
 evtSource.on('message', (evt) => {
