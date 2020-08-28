@@ -75,7 +75,7 @@ evtSource.on('message', (evt) => {
       `${JSON.stringify({
         ...data,
         clientMeta: {
-          timestamp: lastUpdateTime,
+          timestamp: lastUpdateTime || Date.now(),
           processId: clientProcessId,
           lastEventId: evt.lastEventId
         }
