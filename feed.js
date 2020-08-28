@@ -65,6 +65,7 @@ const evtSource = new EventSource('https://www.blaseball.com/events/streamData',
 let latestGameDataState = {};
 evtSource.on('message', (evt) => {
   const data = JSON.parse(evt.data).value.games;
+  if (data === undefined) { return; }
   const { lastUpdateTime, ...dataExcludingLastUpdateTime } = data;
 
   // check if updated state data exists
