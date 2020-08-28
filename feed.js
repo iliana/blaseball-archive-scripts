@@ -55,7 +55,7 @@ function newStream() {
 }
 newStream();
 
-const evtSource = new EventSource('https://www.blaseball.com/events/streamGameData', {
+const evtSource = new EventSource('https://www.blaseball.com/events/streamData', {
   initialRetryDelayMillis: 2000,
   maxBackoffMillis: 5000,
   errorFilter: function errorFilter() {
@@ -64,7 +64,7 @@ const evtSource = new EventSource('https://www.blaseball.com/events/streamGameDa
 });
 let latestGameDataState = {};
 evtSource.on('message', (evt) => {
-  const data = JSON.parse(evt.data).value;
+  const data = JSON.parse(evt.data).value.games;
   const { lastUpdateTime, ...dataExcludingLastUpdateTime } = data;
 
   // check if updated state data exists
