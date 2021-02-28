@@ -3,21 +3,29 @@ import { EventSource } from 'launchdarkly-eventsource';
 import manakin from 'manakin';
 import { dynamic as setIntervalAsyncDynamic } from 'set-interval-async';
 import { BASE_URL, fetchJson } from './util.js';
-import {
-  cache, writeEntry, writeResponse, writeResponses,
-} from './writer.js';
+import { writeEntry, writeResponse, writeResponses } from './writer.js';
 
 const { local: console } = manakin;
 const { setIntervalAsync } = setIntervalAsyncDynamic;
 
 const ENDPOINT_STREAM = '/events/streamData';
-const ENDPOINT_PLAYERS = '/database/players';
 
 let streamData;
 let resolveStreamData;
 const streamDataReady = new Promise((resolve) => {
   resolveStreamData = resolve;
 });
+
+const knownPlayersPromise = fetchJson('https://api.sibr.dev/chronicler/v1/players/names')
+  .then((res) => {
+    const set = new Set(Object.keys(res.body));
+    console.info(`loaded ${set.size} player IDs from chronicler`);
+    return set;
+  })
+  .catch((err) => {
+    console.error(err);
+    return new Set();
+  });
 
 // set up event source logging
 const source = new EventSource(`${BASE_URL}${ENDPOINT_STREAM}`, {
@@ -57,13 +65,11 @@ async function logPlayers() {
     console.warn('teams not found in stream data, fetching instead');
     teams = (await fetchJson('/database/allTeams')).body;
   }
-  writeResponses(await fetchJson(ENDPOINT_PLAYERS, [...new Set([
-    ...Object.keys(cache[ENDPOINT_PLAYERS] ?? {}),
-    ...teams.flatMap((team) => team.lineup),
-    ...teams.flatMap((team) => team.rotation),
-    ...teams.flatMap((team) => team.bullpen),
-    ...teams.flatMap((team) => team.bench),
-  ])]));
+
+  const knownPlayers = await knownPlayersPromise;
+  teams.flatMap((team) => [team.lineup, team.rotation, team.bullpen, team.bench].flat())
+    .forEach((id) => knownPlayers.add(id));
+  writeResponses(await fetchJson('/database/players', [...knownPlayers]));
 }
 
 async function logGameStatsheets() {

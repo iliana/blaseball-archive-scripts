@@ -78,7 +78,7 @@ const processId = (() => {
   }
 })();
 
-export const cache = {};
+const cache = {};
 
 export function writeEntry({
   endpoint, id, time, data,

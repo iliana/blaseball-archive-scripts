@@ -12,7 +12,7 @@ const limiter = new Bottleneck({ minTime: 1000 / 25, maxConcurrent: 10 });
 
 const fetchInner = limiter.wrap(async (endpoint, ids, idParam) => {
   console.info(`fetching ${endpoint}${ids ? ` ids=${ids.length}` : ''}`);
-  const req = superagent.get(`${BASE_URL}${endpoint}`)
+  const req = superagent.get(endpoint.startsWith('/') ? `${BASE_URL}${endpoint}` : endpoint)
     .timeout({ response: 2000, deadline: 15000 })
     .type('json')
     .retry(5);
