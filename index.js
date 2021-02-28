@@ -108,7 +108,9 @@ async function logOffseasonRecap() {
   }
 
   const recap = writeResponse((await fetchJson('/database/offseasonRecap', [season], 'season'))[0]);
-  await Promise.all(['bonusResults', 'decreeResults', 'eventResults'].map((key) => fetchJson(`/database/${key}`, recap[key]).then(writeResponses)));
+  await Promise.all(['bonusResults', 'decreeResults', 'eventResults']
+    .filter((key) => recap[key] !== undefined)
+    .map((key) => fetchJson(`/database/${key}`, recap[key]).then(writeResponses)));
 }
 
 async function metalog() {

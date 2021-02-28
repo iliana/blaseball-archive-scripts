@@ -111,11 +111,13 @@ function resMeta(res) {
 }
 
 export function writeResponse(res) {
-  writeEntry({
-    ...resMeta(res),
-    id: getId(res.body) ?? null,
-    data: res.body,
-  });
+  if (res.body) {
+    writeEntry({
+      ...resMeta(res),
+      id: getId(res.body) ?? null,
+      data: res.body,
+    });
+  }
   return res.body;
 }
 
