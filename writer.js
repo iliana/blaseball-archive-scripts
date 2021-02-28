@@ -3,6 +3,8 @@ import path from 'path';
 import stream from 'stream';
 import url from 'url';
 import zlib from 'zlib';
+import stringify from 'fast-json-stable-stringify';
+import MurmurHash3 from 'imurmurhash';
 import * as uuid from 'uuid';
 import { getId } from './util.js';
 
@@ -67,21 +69,17 @@ const processId = (() => {
   }
 })();
 
-function eq(a, b) {
-  return JSON.stringify(a) === JSON.stringify(b);
-}
-
-export const cache = {};
+export const cache = new Map();
 
 export function writeEntry({
   endpoint, id, time, data,
 }) {
-  if (cache[endpoint] === undefined) {
-    cache[endpoint] = {};
-  } else if (eq(cache[endpoint][id], data)) {
+  const hash = new MurmurHash3(stringify(data)).result();
+  const cacheKey = stringify({ endpoint, id });
+  if (cache.get(cacheKey) === hash) {
     return;
   }
-  cache[endpoint][id] = data;
+  cache.set(cacheKey, hash);
 
   const entry = {
     version: '2',
