@@ -53,3 +53,8 @@ Logs are gzipped files that contain a JSON object per line. Each JSON object has
 | TeamStatsheet | `/database/teamStatsheets` |
 | PlayerStatsheet | `/database/playerStatsheets` |
 | SeasonStatsheet | `/database/seasonStatsheets` |
+| BossFight | Stream: `.value.fights.bossFights[]` |
+| OffseasonRecap | `/database/offseasonRecap` |
+| BonusResult | `/database/bonusResults` |
+| DecreeResult | `/database/decreeResults` |
+| EventResult | `/database/eventResults` |

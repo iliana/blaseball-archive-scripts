@@ -7,9 +7,15 @@ import stringify from 'fast-json-stable-stringify';
 import MurmurHash3 from 'imurmurhash';
 import manakin from 'manakin';
 import * as uuid from 'uuid';
-import { getId } from './util.js';
 
 const { local: console } = manakin;
+
+// use this method to look up the id field of an object, in case this changes
+// globally (like it did when TGB moved from mongodb to postgres)
+function getId(data) {
+  // eslint-disable-next-line no-underscore-dangle
+  return data.id ?? data._id;
+}
 
 function handleErr(err) {
   if (err) {
@@ -81,7 +87,7 @@ export function writeEntry({
   if (cache[endpoint] === undefined) {
     cache[endpoint] = {};
   } else if (cache[endpoint][id] === hash) {
-    return;
+    return data;
   }
   cache[endpoint][id] = hash;
 
@@ -94,16 +100,33 @@ export function writeEntry({
     data,
   };
   currentLog.write(`${JSON.stringify(entry)}\n`);
+  return data;
 }
 
-export function writeEntries(endpoint, responses) {
-  responses.forEach((res) => {
-    const time = res.headers.date === undefined ? undefined : new Date(res.headers.date).getTime();
+function resMeta(res) {
+  return {
+    endpoint: res.req.path.split('?')[0],
+    time: res.headers.date === undefined ? undefined : new Date(res.headers.date).getTime(),
+  };
+}
+
+export function writeResponse(res) {
+  writeEntry({
+    ...resMeta(res),
+    id: getId(res.body) ?? null,
+    data: res.body,
+  });
+  return res.body;
+}
+
+export function writeResponses(responses) {
+  return responses.flatMap((res) => {
+    const meta = resMeta(res);
     res.body.forEach((data) => writeEntry({
-      endpoint,
+      ...meta,
       id: getId(data),
-      time,
       data,
     }));
+    return res.body;
   });
 }
