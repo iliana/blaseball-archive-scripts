@@ -1,14 +1,21 @@
 import 'log-timestamp';
 import { EventSource } from 'launchdarkly-eventsource';
+import manakin from 'manakin';
 import { dynamic as setIntervalAsyncDynamic } from 'set-interval-async';
-import { BASE_URL, fetchJson } from './util.js';
+import { BASE_URL, fetchJson, flatRes } from './util.js';
 import { cache, writeEntry, writeEntries } from './writer.js';
 
+const { local: console } = manakin;
 const { setIntervalAsync } = setIntervalAsyncDynamic;
 
-const ENDPOINT_PLAYERS = '/database/players';
 const ENDPOINT_STREAM = '/events/streamData';
+const ENDPOINT_PLAYERS = '/database/players';
+const ENDPOINT_GAME_STATSHEETS = '/database/gameStatsheets';
+const ENDPOINT_TEAM_STATSHEETS = '/database/teamStatsheets';
+const ENDPOINT_PLAYER_STATSHEETS = '/database/playerStatsheets';
+const ENDPOINT_SEASON_STATSHEETS = '/database/seasonStatsheets';
 
+let streamData;
 let resolveStreamData;
 const streamDataReady = new Promise((resolve) => {
   resolveStreamData = resolve;
@@ -23,13 +30,14 @@ const source = new EventSource(`${BASE_URL}${ENDPOINT_STREAM}`, {
   },
 });
 source.on('open', () => {
-  console.log(`listening on ${ENDPOINT_STREAM}`);
+  console.info(`listening on ${ENDPOINT_STREAM}`);
 });
 source.on('message', (event) => {
+  streamData = JSON.parse(event.data);
   writeEntry({
     endpoint: ENDPOINT_STREAM,
     id: null,
-    data: JSON.parse(event.data),
+    data: streamData,
   });
   if (resolveStreamData !== undefined) {
     resolveStreamData();
@@ -50,13 +58,13 @@ function logSingle(endpoint) {
   };
 }
 
-async function streamData() {
-  await streamDataReady;
-  return cache[ENDPOINT_STREAM]?.null?.value;
-}
-
 async function logPlayers() {
-  const teams = (await streamData())?.leagues?.teams ?? (await fetchJson('/database/allTeams')).body;
+  await streamDataReady;
+  let teams = streamData?.value?.leagues?.teams;
+  if (teams === undefined) {
+    console.warn('teams not found in stream data, fetching instead');
+    teams = (await fetchJson('/database/allTeams')).body;
+  }
   writeEntries(ENDPOINT_PLAYERS, await fetchJson(ENDPOINT_PLAYERS, [...new Set([
     ...Object.keys(cache[ENDPOINT_PLAYERS] ?? {}),
     ...teams.flatMap((team) => team.lineup),
@@ -66,9 +74,44 @@ async function logPlayers() {
   ])]));
 }
 
+async function logGameStatsheets() {
+  await streamDataReady;
+  const games = streamData?.value?.games?.schedule;
+  if (games === undefined) {
+    console.error('schedule not found in stream data');
+    return;
+  }
+
+  const gameStatsheets = await fetchJson(ENDPOINT_GAME_STATSHEETS,
+    games.map((game) => game.statsheet));
+  writeEntries(ENDPOINT_GAME_STATSHEETS, gameStatsheets);
+
+  const teamStatsheets = await fetchJson(ENDPOINT_TEAM_STATSHEETS,
+    flatRes(gameStatsheets).flatMap((sheet) => [sheet.awayTeamStats, sheet.homeTeamStats]));
+  writeEntries(ENDPOINT_TEAM_STATSHEETS, teamStatsheets);
+
+  const playerStatsheets = await fetchJson(ENDPOINT_PLAYER_STATSHEETS,
+    flatRes(teamStatsheets).flatMap((sheet) => sheet.playerStats));
+  writeEntries(ENDPOINT_PLAYER_STATSHEETS, playerStatsheets);
+}
+
+async function logSeasonStatsheet() {
+  await streamDataReady;
+  const season = streamData?.value?.games?.season;
+  if (season === undefined) {
+    console.error('season not found in stream data');
+    return;
+  }
+
+  writeEntries(ENDPOINT_SEASON_STATSHEETS,
+    await fetchJson(ENDPOINT_SEASON_STATSHEETS, [season.stats]));
+}
+
 async function metalog() {
   return Promise.all([
     logPlayers,
+    logGameStatsheets,
+    logSeasonStatsheet,
     logSingle('/api/getIdols'),
     logSingle('/api/getTribute'),
     logSingle('/database/globalEvents'),

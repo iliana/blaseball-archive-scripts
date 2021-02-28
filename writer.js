@@ -5,8 +5,11 @@ import url from 'url';
 import zlib from 'zlib';
 import stringify from 'fast-json-stable-stringify';
 import MurmurHash3 from 'imurmurhash';
+import manakin from 'manakin';
 import * as uuid from 'uuid';
 import { getId } from './util.js';
+
+const { local: console } = manakin;
 
 function handleErr(err) {
   if (err) {
@@ -21,7 +24,7 @@ fs.mkdir(path.join(dirname, 'log'), { recursive: true }, handleErr);
 let currentLog;
 function newStream() {
   currentLog = fs.createWriteStream(path.join(dirname, 'log', `${Date.now()}.json`), { flags: 'wx' });
-  console.log(`started ${path.basename(currentLog.path)}`);
+  console.info(`started ${path.basename(currentLog.path)}`);
 
   currentLog.on('finish', () => {
     // swap out the current logger for a new one
@@ -35,9 +38,9 @@ function newStream() {
       const destination = fs.createWriteStream(`${oldLog.path}.gz`);
 
       stream.pipeline(source, gzip, destination, handleErr);
-      console.log(`finished ${path.basename(destination.path)}`);
+      console.info(`finished ${path.basename(destination.path)}`);
     } else {
-      console.log(`removing empty ${path.basename(oldLog.path)}`);
+      console.info(`removing empty ${path.basename(oldLog.path)}`);
     }
 
     // remove the uncompressed log
@@ -69,17 +72,18 @@ const processId = (() => {
   }
 })();
 
-export const cache = new Map();
+export const cache = {};
 
 export function writeEntry({
   endpoint, id, time, data,
 }) {
   const hash = new MurmurHash3(stringify(data)).result();
-  const cacheKey = stringify({ endpoint, id });
-  if (cache.get(cacheKey) === hash) {
+  if (cache[endpoint] === undefined) {
+    cache[endpoint] = {};
+  } else if (cache[endpoint][id] === hash) {
     return;
   }
-  cache.set(cacheKey, hash);
+  cache[endpoint][id] = hash;
 
   const entry = {
     version: '2',

@@ -34,14 +34,22 @@ Logs are gzipped files that contain a JSON object per line. Each JSON object has
 | Chronicler data type | Endpoint used |
 | -------------------- | ------------- |
 | Player | `/database/players` |
-| Team | Stream: `.value.leagues.teams` |
+| Team | Stream: `.value.leagues.teams[]` |
 | Stream | `/events/streamData` |
-| Game | Stream: `.value.games.schedule` |
+| Game | Stream: `.value.games.schedule[]` |
 | Idols | `/api/getIdols` |
 | Tributes | `/api/getTribute` |
 | Temporal | Stream: `.value.temporal` |
-| Tiebreakers | Stream: `.value.leagues.tiebreakers` |
+| Tiebreakers | Stream: `.value.leagues.tiebreakers[]` |
 | Sim | Stream: `.value.games.sim` |
 | GlobalEvents | `/database/globalEvents` |
 | OffseasonSetup | `/database/offseasonSetup` |
 | Standings | Stream: `.value.games.standings` |
+| Season | Stream: `.value.games.season` |
+| League | Stream: `.value.leagues.leagues[]` |
+| Subleague | Stream: `.value.leagues.subleagues[]` |
+| Division | Stream: `.value.leagues.divisions[]` |
+| GameStatsheet | `/database/gameStatsheets` |
+| TeamStatsheet | `/database/teamStatsheets` |
+| PlayerStatsheet | `/database/playerStatsheets` |
+| SeasonStatsheet | `/database/seasonStatsheets` |

@@ -1,6 +1,9 @@
 import Bottleneck from 'bottleneck';
 import chunk from 'lodash.chunk';
+import manakin from 'manakin';
 import superagent from 'superagent';
+
+const { local: console } = manakin;
 
 export const BASE_URL = 'https://www.blaseball.com';
 
@@ -8,7 +11,7 @@ export const BASE_URL = 'https://www.blaseball.com';
 const limiter = new Bottleneck({ minTime: 1000 / 25, maxConcurrent: 10 });
 
 const fetchInner = limiter.wrap(async (endpoint, ids) => {
-  console.log(`fetching ${endpoint}${ids ? ` ids=${ids.length}` : ''}`);
+  console.info(`fetching ${endpoint}${ids ? ` ids=${ids.length}` : ''}`);
   const req = superagent.get(`${BASE_URL}${endpoint}`)
     .timeout({ response: 2000, deadline: 15000 })
     .type('json')
@@ -31,4 +34,8 @@ export async function fetchJson(endpoint, ids) {
 export function getId(data) {
   // eslint-disable-next-line no-underscore-dangle
   return data.id ?? data._id;
+}
+
+export function flatRes(responses) {
+  return responses.flatMap((res) => res.body);
 }

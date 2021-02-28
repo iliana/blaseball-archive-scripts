@@ -17,6 +17,7 @@
     "launchdarkly-eventsource": "^1.4.0",
     "lodash.chunk": "^4.2.0",
     "log-timestamp": "^0.3.0",
+    "manakin": "^0.5.2",
     "set-interval-async": "^1.0.34",
     "superagent": "^6.1.0",
     "uuid": "^8.3.2"
