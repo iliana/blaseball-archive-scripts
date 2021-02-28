@@ -69,6 +69,8 @@ async function logPlayers() {
 async function metalog() {
   return Promise.all([
     logPlayers,
+    logSingle('/api/getIdols'),
+    logSingle('/api/getTribute'),
     logSingle('/database/globalEvents'),
     logSingle('/database/offseasonSetup'),
   ].map((p) => p().catch((err) => {
