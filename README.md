@@ -58,3 +58,7 @@ Logs are gzipped files that contain a JSON object per line. Each JSON object has
 | BonusResult | `/database/bonusResults` |
 | DecreeResult | `/database/decreeResults` |
 | EventResult | `/database/eventResults` |
+| Playoffs | Stream: `.value.games.postseason.playoffs` |
+| PlayoffRound | Stream: `.value.games.postseason.allRounds[]` |
+| PlayoffMatchup | Stream: `.value.games.postseason.allMatchups[]` |
+| Tournament | Stream: `.value.games.tournament` |
