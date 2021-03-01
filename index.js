@@ -120,25 +120,10 @@ async function logOffseasonRecap() {
   }
 }
 
-async function logFeedGlobal() {
-  await fetch('/database/feed/global', { limit: 250 }).then(writeList);
-}
-
-async function logFeedPlayer() {
-  await Promise.all([...(await knownPlayers)]
-    .map((id) => fetch.withOptions({ priority: 9 }, '/database/feed/player', { id, limit: 250 }).then(writeList)));
-}
-
-async function logFeedTeam() {
-  await Promise.all((await allTeams())
-    .map((team) => fetch.withOptions({ priority: 7 }, '/database/feed/team', { id: team.id, limit: 250 }).then(writeList)));
-}
-
-async function logFeedGame() {
-  await streamDataReady;
-  const games = streamData?.value?.games?.schedule;
-  await Promise.all(games?.map((game) => fetch.withOptions({ priority: 7 }, '/database/feed/game', { id: game.id, limit: 250 })
-    .then(writeList)));
+async function logFeed() {
+  // fetch the last 10 minutes every 5 minutes. simple!
+  const start = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+  await fetch('/database/feed/global', { start, order: 1 }).then(writeList);
 }
 
 [
@@ -151,10 +136,7 @@ async function logFeedGame() {
   [logSingle('/database/globalEvents'), 1],
   [logSingle('/database/offseasonSetup'), 1],
 
-  [logFeedGlobal, 5],
-  [logFeedPlayer, 15],
-  [logFeedTeam, 5],
-  [logFeedGame, 5],
+  [logFeed, 5],
 ].forEach(([f, min]) => {
   setIntervalAsync(f, min * 60 * 1000);
   f().then(() => {});
