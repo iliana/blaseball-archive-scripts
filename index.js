@@ -114,22 +114,16 @@ async function logOffseasonRecap() {
     .map((key) => fetchJson(`/database/${key}`, recap[key]).then(writeResponses)));
 }
 
-async function metalog() {
-  return Promise.all([
-    logPlayers,
-    logGameStatsheets,
-    logSeasonStatsheet,
-    logOffseasonRecap,
-    logSingle('/api/getIdols'),
-    logSingle('/api/getTribute'),
-    logSingle('/database/globalEvents'),
-    logSingle('/database/offseasonSetup'),
-  ].map((p) => p().catch((err) => {
-    console.error(err);
-    process.exitCode = 1;
-  })));
-}
-
-// all other logging, per-minute:
-setIntervalAsync(metalog, 60 * 1000);
-metalog().then(() => {});
+[
+  logPlayers,
+  logGameStatsheets,
+  logSeasonStatsheet,
+  logOffseasonRecap,
+  logSingle('/api/getIdols'),
+  logSingle('/api/getTribute'),
+  logSingle('/database/globalEvents'),
+  logSingle('/database/offseasonSetup'),
+].forEach((f) => {
+  setIntervalAsync(f, 60 * 1000);
+  f().then(() => {});
+});
