@@ -123,7 +123,7 @@ async function logOffseasonRecap() {
 async function logFeed() {
   // fetch the last 10 minutes every 5 minutes. simple!
   const start = new Date(Date.now() - 10 * 60 * 1000).toISOString();
-  await fetch('/database/feed/global', { start, order: 1 }).then(writeList);
+  await fetch('/database/feed/global', { start, sort: 1 }).then(writeList);
 }
 
 [
