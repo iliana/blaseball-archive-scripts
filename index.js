@@ -114,11 +114,16 @@ async function logOffseasonRecap() {
     .map((key) => fetchJson(`/database/${key}`, recap[key]).then(writeResponses)));
 }
 
+async function logFeed() {
+  writeResponses([await fetchJson('/database/feed/global')]);
+}
+
 [
   logPlayers,
   logGameStatsheets,
   logSeasonStatsheet,
   logOffseasonRecap,
+  logFeed,
   logSingle('/api/getIdols'),
   logSingle('/api/getTribute'),
   logSingle('/database/globalEvents'),
