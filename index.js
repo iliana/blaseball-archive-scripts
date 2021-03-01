@@ -116,6 +116,9 @@ async function logOffseasonRecap() {
 
 async function logFeed() {
   writeResponses([await fetchJson('/database/feed/global')]);
+  writeResponses([await fetchJson('/database/feed/player')]);
+  writeResponses([await fetchJson('/database/feed/team')]);
+  writeResponses([await fetchJson('/database/feed/game')]);
 }
 
 [

@@ -19,6 +19,9 @@ const fetchInner = limiter.wrap(async (endpoint, ids, idParam) => {
   if (ids?.length > 0) {
     req.query({ [idParam ?? 'ids']: ids.join(',') });
   }
+  if (endpoint.startsWith('/database/feed/')) {
+    req.query({ limit: 250 });
+  }
   return req;
 });
 
