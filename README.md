@@ -63,5 +63,3 @@ Logs are gzipped files that contain a JSON object per line. Each JSON object has
 | PlayoffMatchup | Stream: `.value.games.postseason.allMatchups[]` |
 | Tournament | Stream: `.value.games.tournament` |
 | (not yet in Chronicler) | `/database/feed/global` |
-
-(Some earlier archived events have other `/database/feed/*` endpoints. These should be treated as if they came from `/database/feed/global`.)

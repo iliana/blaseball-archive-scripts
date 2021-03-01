@@ -45,20 +45,22 @@ function newStream() {
       const source = fs.createReadStream(oldLog.path);
       const destination = fs.createWriteStream(`${oldLog.path}.gz`);
 
-      stream.pipeline(source, gzip, destination, handleErr);
-      console.info(`finished ${path.basename(destination.path)}`);
+      destination.on('finish', () => {
+        console.info(`finished ${path.basename(destination.path)}`);
 
-      if (process.env.S3_BUCKET) {
-        const Bucket = process.env.S3_BUCKET;
-        const Key = `${process.env.S3_PREFIX ?? ''}${path.basename(destination.path)}`;
-        s3.upload({ Bucket, Key, Body: fs.createReadStream(destination.path) })
-          .promise()
-          .then(() => {
-            console.info(`uploaded ${path.basename(destination.path)} to s3://${Bucket}/${Key}`);
-            fs.unlink(destination.path, handleErr);
-          })
-          .catch((err) => { console.error(err); });
-      }
+        if (process.env.S3_BUCKET) {
+          const Bucket = process.env.S3_BUCKET;
+          const Key = `${process.env.S3_PREFIX ?? ''}${path.basename(destination.path)}`;
+          s3.upload({ Bucket, Key, Body: fs.createReadStream(destination.path) })
+            .promise()
+            .then(() => {
+              console.info(`uploaded ${path.basename(destination.path)} to s3://${Bucket}/${Key}`);
+            })
+            .catch((err) => { console.error(err); });
+        }
+      });
+
+      stream.pipeline(source, gzip, destination, handleErr);
     } else {
       console.info(`removing empty ${path.basename(oldLog.path)}`);
     }
