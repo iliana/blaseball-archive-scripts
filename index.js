@@ -3,8 +3,10 @@ import 'dotenv/config.js';
 import { EventSource } from 'launchdarkly-eventsource';
 import manakin from 'manakin';
 import { dynamic as setIntervalAsyncDynamic } from 'set-interval-async';
-import { BASE_URL, fetchJson } from './util.js';
-import { writeEntry, writeResponse, writeResponses } from './writer.js';
+import { BASE_URL, fetch, fetchIds } from './util.js';
+import {
+  writeEntry, write, writeList, flatWriteList,
+} from './writer.js';
 
 const { local: console } = manakin;
 const { setIntervalAsync } = setIntervalAsyncDynamic;
@@ -17,9 +19,10 @@ const streamDataReady = new Promise((resolve) => {
   resolveStreamData = resolve;
 });
 
-const knownPlayersPromise = fetchJson('https://api.sibr.dev/chronicler/v1/players/names')
+const knownPlayers = fetch('https://api.sibr.dev/chronicler/v1/players/names')
   .then((res) => {
     const set = new Set(Object.keys(res.body));
+    set.delete('bc4187fa-459a-4c06-bbf2-4e0e013d27ce'); // Everybody do the wave lol 🌊
     console.info(`loaded ${set.size} player IDs from chronicler`);
     return set;
   })
@@ -55,83 +58,104 @@ source.on('error', (err) => {
   console.error(err);
 });
 
-function logSingle(endpoint) {
-  return async () => writeResponse(await fetchJson(endpoint));
+async function allTeams() {
+  await streamDataReady;
+  const teams = streamData?.value?.leagues?.teams;
+  if (teams === undefined) {
+    console.warn('teams not found in stream data, fetching instead');
+    return (await fetch('/database/allTeams')).body;
+  }
+  return teams;
+}
+
+function logSingle(url, query) {
+  return async () => { await fetch(url, query).then(write); };
 }
 
 async function logPlayers() {
-  await streamDataReady;
-  let teams = streamData?.value?.leagues?.teams;
-  if (teams === undefined) {
-    console.warn('teams not found in stream data, fetching instead');
-    teams = (await fetchJson('/database/allTeams')).body;
-  }
-
-  const knownPlayers = await knownPlayersPromise;
-  teams.flatMap((team) => [team.lineup, team.rotation, team.bullpen, team.bench].flat())
-    .forEach((id) => knownPlayers.add(id));
-  writeResponses(await fetchJson('/database/players', [...knownPlayers]));
+  const players = await knownPlayers;
+  (await allTeams())
+    .flatMap((team) => [team.lineup, team.rotation, team.bullpen, team.bench].flat())
+    .forEach((id) => players.add(id));
+  await fetchIds('/database/players', [...players]).then(flatWriteList);
 }
 
 async function logGameStatsheets() {
   await streamDataReady;
   const games = streamData?.value?.games?.schedule;
   if (games === undefined) {
-    console.error('schedule not found in stream data');
-    return;
+    throw new Error('schedule not found in stream data');
   }
 
-  const gameStatsheets = writeResponses(await fetchJson('/database/gameStatsheets',
-    games.map((game) => game.statsheet)));
-  const teamStatsheets = writeResponses(await fetchJson('/database/teamStatsheets',
-    gameStatsheets.flatMap((sheet) => [sheet.awayTeamStats, sheet.homeTeamStats])));
-  writeResponses(await fetchJson('/database/playerStatsheets',
-    teamStatsheets.flatMap((sheet) => sheet.playerStats)));
+  const gameStatsheets = await fetchIds('/database/gameStatsheets', games.map((game) => game.statsheet))
+    .then(flatWriteList);
+  const teamStatsheets = await fetchIds('/database/teamStatsheets', gameStatsheets.flatMap((sheet) => [sheet.awayTeamStats, sheet.homeTeamStats]))
+    .then(flatWriteList);
+  await fetchIds('/database/playerStatsheets', teamStatsheets.flatMap((sheet) => sheet.playerStats))
+    .then(flatWriteList);
 }
 
 async function logSeasonStatsheet() {
   await streamDataReady;
   const season = streamData?.value?.games?.season;
   if (season === undefined) {
-    console.error('season not found in stream data');
-    return;
+    throw new Error('season not found in stream data');
   }
 
-  writeResponses(await fetchJson('/database/seasonStatsheets', [season.stats]));
+  await fetchIds('/database/seasonStatsheets', [season.stats]).then(flatWriteList);
 }
 
 async function logOffseasonRecap() {
   await streamDataReady;
   const season = streamData?.value?.games?.season?.seasonNumber;
   if (season === undefined) {
-    console.error('season number not found in stream data');
-    return;
+    throw new Error('season number not found in stream data');
   }
 
-  const recap = writeResponse((await fetchJson('/database/offseasonRecap', [season], 'season'))[0]);
-  await Promise.all(['bonusResults', 'decreeResults', 'eventResults']
-    .filter((key) => recap[key] !== undefined)
-    .map((key) => fetchJson(`/database/${key}`, recap[key]).then(writeResponses)));
+  const recap = await fetch('/database/offseasonRecap', { season }).then(write);
+  if (recap !== undefined) {
+    await Promise.all(['bonusResults', 'decreeResults', 'eventResults']
+      .filter((key) => recap[key] !== undefined)
+      .map((key) => fetchIds(`/database/${key}`, recap[key]).then(flatWriteList)));
+  }
 }
 
-async function logFeed() {
-  writeResponses([await fetchJson('/database/feed/global')]);
-  writeResponses([await fetchJson('/database/feed/player')]);
-  writeResponses([await fetchJson('/database/feed/team')]);
-  writeResponses([await fetchJson('/database/feed/game')]);
+async function logFeedGlobal() {
+  await fetch('/database/feed/global', { limit: 250 }).then(writeList);
+}
+
+async function logFeedPlayer() {
+  await Promise.all([...(await knownPlayers)]
+    .map((id) => fetch.withOptions({ priority: 9 }, '/database/feed/player', { id, limit: 250 }).then(writeList)));
+}
+
+async function logFeedTeam() {
+  await Promise.all((await allTeams())
+    .map((team) => fetch.withOptions({ priority: 7 }, '/database/feed/team', { id: team.id, limit: 250 }).then(writeList)));
+}
+
+async function logFeedGame() {
+  await streamDataReady;
+  const games = streamData?.value?.games?.schedule;
+  await Promise.all(games?.map((game) => fetch.withOptions({ priority: 7 }, '/database/feed/game', { id: game.id, limit: 250 })
+    .then(writeList)));
 }
 
 [
-  logPlayers,
-  logGameStatsheets,
-  logSeasonStatsheet,
-  logOffseasonRecap,
-  logFeed,
-  logSingle('/api/getIdols'),
-  logSingle('/api/getTribute'),
-  logSingle('/database/globalEvents'),
-  logSingle('/database/offseasonSetup'),
-].forEach((f) => {
-  setIntervalAsync(f, 60 * 1000);
+  [logPlayers, 1],
+  [logGameStatsheets, 1],
+  [logSeasonStatsheet, 1],
+  [logOffseasonRecap, 1],
+  [logSingle('/api/getIdols'), 1],
+  [logSingle('/api/getTribute'), 1],
+  [logSingle('/database/globalEvents'), 1],
+  [logSingle('/database/offseasonSetup'), 1],
+
+  [logFeedGlobal, 5],
+  [logFeedPlayer, 15],
+  [logFeedTeam, 5],
+  [logFeedGame, 5],
+].forEach(([f, min]) => {
+  setIntervalAsync(f, min * 60 * 1000);
   f().then(() => {});
 });

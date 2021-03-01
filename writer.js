@@ -16,7 +16,7 @@ const s3 = new S3();
 // globally (like it did when TGB moved from mongodb to postgres)
 function getId(data) {
   // eslint-disable-next-line no-underscore-dangle
-  return data.id ?? data._id;
+  return data.id ?? data._id ?? null;
 }
 
 function handleErr(err) {
@@ -124,25 +124,29 @@ function resMeta(res) {
   };
 }
 
-export function writeResponse(res) {
+export function write(res) {
   if (res.body) {
     writeEntry({
       ...resMeta(res),
-      id: getId(res.body) ?? null,
+      id: getId(res.body),
       data: res.body,
     });
   }
   return res.body;
 }
 
-export function writeResponses(responses) {
-  return responses.flatMap((res) => {
-    const meta = resMeta(res);
+export function writeList(res) {
+  const meta = resMeta(res);
+  if (res.body) {
     res.body.forEach((data) => writeEntry({
       ...meta,
       id: getId(data),
       data,
     }));
-    return res.body;
-  });
+  }
+  return res.body;
+}
+
+export function flatWriteList(responses) {
+  return responses.flatMap(writeList);
 }

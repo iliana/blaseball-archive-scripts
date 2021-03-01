@@ -7,27 +7,33 @@ const { local: console } = manakin;
 
 export const BASE_URL = 'https://www.blaseball.com';
 
-// 25 requests per second, at most 10 concurrent requests
-const limiter = new Bottleneck({ minTime: 1000 / 25, maxConcurrent: 10 });
+// 20 requests per second, at most 8 concurrent requests
+const limiter = new Bottleneck({ minTime: 1000 / 20, maxConcurrent: 8 });
 
-const fetchInner = limiter.wrap(async (endpoint, ids, idParam) => {
-  console.info(`fetching ${endpoint}${ids ? ` ids=${ids.length}` : ''}`);
-  const req = superagent.get(endpoint.startsWith('/') ? `${BASE_URL}${endpoint}` : endpoint)
+export const fetch = limiter.wrap(async (url, query) => {
+  const req = superagent.get(url.startsWith('/') ? `${BASE_URL}${url}` : url)
+    .query(query)
     .timeout({ response: 2000, deadline: 15000 })
-    .type('json')
     .retry(5);
-  if (ids?.length > 0) {
-    req.query({ [idParam ?? 'ids']: ids.join(',') });
-  }
-  if (endpoint.startsWith('/database/feed/')) {
-    req.query({ limit: 250 });
-  }
-  return req;
+  const qs = Object.entries(req.qs).map(([k, v]) => {
+    const vDesc = v.toString().includes(',') ? `{${v.split(',').length}}` : v;
+    return `${k}=${vDesc}`;
+  });
+  console.info(`fetching ${url} ${qs}`.trim());
+  return req.then((res) => {
+    // res.body is a little too smart. let's explicitly handle the JSON response
+    res.body = undefined;
+    if (res.text) {
+      try {
+        res.body = JSON.parse(res.text);
+      } catch {
+        // ignore
+      }
+    }
+    return res;
+  });
 });
 
-export async function fetchJson(endpoint, ids, idParam) {
-  if (ids === undefined) {
-    return fetchInner(endpoint, undefined, idParam);
-  }
-  return Promise.all(chunk(ids, 200).map((c) => fetchInner(endpoint, c, idParam)));
+export async function fetchIds(url, ids) {
+  return Promise.all(chunk(ids, 200).map((c) => fetch(url, { ids: c.join(',') })));
 }
