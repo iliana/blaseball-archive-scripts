@@ -11,7 +11,9 @@
   "author": "iliana etaoin <iliana@buttslol.net>",
   "license": "MIT",
   "dependencies": {
+    "aws-sdk": "^2.853.0",
     "bottleneck": "^2.19.5",
+    "dotenv": "^8.2.0",
     "fast-json-stable-stringify": "^2.1.0",
     "imurmurhash": "^0.1.4",
     "launchdarkly-eventsource": "^1.4.0",

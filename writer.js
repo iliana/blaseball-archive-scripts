@@ -3,12 +3,14 @@ import path from 'path';
 import stream from 'stream';
 import url from 'url';
 import zlib from 'zlib';
+import S3 from 'aws-sdk/clients/s3.js';
 import stringify from 'fast-json-stable-stringify';
 import MurmurHash3 from 'imurmurhash';
 import manakin from 'manakin';
 import * as uuid from 'uuid';
 
 const { local: console } = manakin;
+const s3 = new S3();
 
 // use this method to look up the id field of an object, in case this changes
 // globally (like it did when TGB moved from mongodb to postgres)
@@ -45,6 +47,18 @@ function newStream() {
 
       stream.pipeline(source, gzip, destination, handleErr);
       console.info(`finished ${path.basename(destination.path)}`);
+
+      if (process.env.S3_BUCKET) {
+        const Bucket = process.env.S3_BUCKET;
+        const Key = `${process.env.S3_PREFIX ?? ''}${path.basename(destination.path)}`;
+        s3.upload({ Bucket, Key, Body: fs.createReadStream(destination.path) })
+          .promise()
+          .then(() => {
+            console.info(`uploaded ${path.basename(destination.path)} to s3://${Bucket}/${Key}`);
+            fs.unlink(destination.path, handleErr);
+          })
+          .catch((err) => { console.error(err); });
+      }
     } else {
       console.info(`removing empty ${path.basename(oldLog.path)}`);
     }
