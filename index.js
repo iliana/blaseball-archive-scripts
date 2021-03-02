@@ -13,7 +13,7 @@ const { setIntervalAsync } = setIntervalAsyncDynamic;
 
 const ENDPOINT_STREAM = '/events/streamData';
 
-let streamData;
+const streamData = {};
 let resolveStreamData;
 const streamDataReady = new Promise((resolve) => {
   resolveStreamData = resolve;
@@ -43,12 +43,15 @@ source.on('open', () => {
   console.info(`listening on ${ENDPOINT_STREAM}`);
 });
 source.on('message', (event) => {
-  streamData = JSON.parse(event.data);
+  const data = JSON.parse(event.data);
   writeEntry({
     endpoint: ENDPOINT_STREAM,
     id: null,
-    data: streamData,
+    data,
   });
+
+  streamData.games = data.value?.games ?? streamData.games;
+  streamData.leagues = data.value?.leagues ?? streamData.leagues;
   if (resolveStreamData !== undefined) {
     resolveStreamData();
     resolveStreamData = undefined;
@@ -60,7 +63,7 @@ source.on('error', (err) => {
 
 async function allTeams() {
   await streamDataReady;
-  const teams = streamData?.value?.leagues?.teams;
+  const teams = streamData?.leagues?.teams;
   if (teams === undefined) {
     console.warn('teams not found in stream data, fetching instead');
     return (await fetch('/database/allTeams')).body;
@@ -82,7 +85,7 @@ async function logPlayers() {
 
 async function logGameStatsheets() {
   await streamDataReady;
-  const games = streamData?.value?.games?.schedule;
+  const games = streamData?.games?.schedule;
   if (games === undefined) {
     throw new Error('schedule not found in stream data');
   }
@@ -97,7 +100,7 @@ async function logGameStatsheets() {
 
 async function logSeasonStatsheet() {
   await streamDataReady;
-  const season = streamData?.value?.games?.season;
+  const season = streamData?.games?.season;
   if (season === undefined) {
     throw new Error('season not found in stream data');
   }
@@ -107,7 +110,7 @@ async function logSeasonStatsheet() {
 
 async function logOffseasonRecap() {
   await streamDataReady;
-  const season = streamData?.value?.games?.season?.seasonNumber;
+  const season = streamData?.games?.season?.seasonNumber;
   if (season === undefined) {
     throw new Error('season number not found in stream data');
   }
