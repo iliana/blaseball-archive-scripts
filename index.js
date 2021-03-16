@@ -30,6 +30,7 @@ const knownPlayers = fetch('https://api.sibr.dev/chronicler/v1/players/names')
     console.error(err);
     return new Set();
   });
+const knownReceivers = new Set();
 
 // set up event source logging
 const source = new EventSource(`${BASE_URL}${ENDPOINT_STREAM}`, {
@@ -80,7 +81,18 @@ async function logPlayers() {
   (await allTeams())
     .flatMap((team) => [team.lineup, team.rotation, team.bullpen, team.bench].flat())
     .forEach((id) => players.add(id));
-  await fetchIds('/database/players', [...players]).then(flatWriteList);
+  Object.values(await fetchIds('/database/players', [...players]).then(flatWriteList))
+    .forEach((player) => {
+      if (player.permAttr.includes('RECEIVER')) {
+        knownReceivers.add(player.id);
+      }
+    });
+}
+
+async function logReceivers() {
+  if (knownReceivers.size > 0) {
+    await fetchIds('/database/players', [...knownReceivers]).then(flatWriteList);
+  }
 }
 
 async function logGameStatsheets() {
@@ -131,6 +143,7 @@ async function logFeed() {
 
 [
   [logPlayers, 1],
+  [logReceivers, 0.1],
   [logGameStatsheets, 1],
   [logSeasonStatsheet, 1],
   [logOffseasonRecap, 1],
