@@ -11,7 +11,7 @@
   "author": "iliana etaoin <iliana@buttslol.net>",
   "license": "MIT",
   "dependencies": {
-    "aws-sdk": "^2.853.0",
+    "aws-sdk": "^2.879.0",
     "bottleneck": "^2.19.5",
     "dotenv": "^8.2.0",
     "fast-json-stable-stringify": "^2.1.0",
@@ -20,12 +20,12 @@
     "lodash.chunk": "^4.2.0",
     "log-timestamp": "^0.3.0",
     "manakin": "^0.5.2",
-    "set-interval-async": "^1.0.34",
+    "set-interval-async": "^2.0.1",
     "superagent": "^6.1.0",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "eslint": "^7.21.0",
+    "eslint": "^7.23.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-plugin-import": "^2.22.1"
   }
