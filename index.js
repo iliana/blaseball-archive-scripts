@@ -127,6 +127,9 @@ async function logFeed() {
   // fetch the last 10 minutes every 5 minutes. simple!
   const start = new Date(Date.now() - 10 * 60 * 1000).toISOString();
   await fetch('/database/feed/global', { start, sort: 1 }).then(writeList);
+  // also fetch the top 50k events sorted by peanuts, for now, until we figure
+  // something out better for logging upnuts
+  await fetch('/database/feed/global', { sort: 2, limit: 50000 }).then(writeList);
 }
 
 [
