@@ -126,11 +126,11 @@ function resMeta(res) {
   };
 }
 
-export function write(res) {
+export function write(res, id) {
   if (res.body) {
     writeEntry({
       ...resMeta(res),
-      id: getId(res.body),
+      id: id ?? getId(res.body),
       data: res.body,
     });
   }

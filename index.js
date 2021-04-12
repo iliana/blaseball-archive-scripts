@@ -123,6 +123,21 @@ async function logOffseasonRecap() {
   }
 }
 
+async function logRenoProgress() {
+  const teams = await allTeams();
+  await Promise.all(teams
+    .filter((team) => team.stadium !== null)
+    .map((team) => fetch('/database/renovationProgress', { id: team.stadium })
+      .then((res) => write(res, team.stadium))));
+}
+
+async function logTeamElectionStats() {
+  const teams = await allTeams();
+  await Promise.all(teams
+    .map((team) => fetch('/database/teamElectionStats', { id: team.id })
+      .then((res) => write(res, team.id))));
+}
+
 async function logFeed() {
   // fetch the last 10 minutes every 5 minutes. simple!
   const start = new Date(Date.now() - 10 * 60 * 1000).toISOString();
@@ -141,6 +156,8 @@ async function logFeed() {
   [logSingle('/api/getTribute'), 1],
   [logSingle('/database/globalEvents'), 1],
   [logSingle('/database/offseasonSetup'), 1],
+  [logRenoProgress, 1],
+  [logTeamElectionStats, 1],
 
   [logFeed, 5],
 ].forEach(([f, min]) => {
