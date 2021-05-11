@@ -156,6 +156,7 @@ async function logFeed() {
   [logSingle('/api/getTribute'), 1],
   [logSingle('/database/globalEvents'), 1],
   [logSingle('/database/offseasonSetup'), 1],
+  [logSingle('/database/giftProgress'), 1],
   [logRenoProgress, 1],
   [logTeamElectionStats, 1],
 
