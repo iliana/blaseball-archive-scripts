@@ -19,18 +19,6 @@ const streamDataReady = new Promise((resolve) => {
   resolveStreamData = resolve;
 });
 
-const knownPlayers = fetch('https://api.sibr.dev/chronicler/v1/players/names')
-  .then((res) => {
-    const set = new Set(Object.keys(res.body));
-    set.delete('bc4187fa-459a-4c06-bbf2-4e0e013d27ce'); // Everybody do the wave lol 🌊
-    console.info(`loaded ${set.size} player IDs from chronicler`);
-    return set;
-  })
-  .catch((err) => {
-    console.error(err);
-    return new Set();
-  });
-
 // set up event source logging
 const source = new EventSource(`${BASE_URL}${ENDPOINT_STREAM}`, {
   initialRetryDelayMillis: 2000,
@@ -76,11 +64,10 @@ function logSingle(url, query) {
 }
 
 async function logPlayers() {
-  const players = await knownPlayers;
-  (await allTeams())
-    .flatMap((team) => [team.lineup, team.rotation, team.bullpen, team.bench].flat())
-    .forEach((id) => players.add(id));
-  await fetchIds('/database/players', [...players]).then(flatWriteList);
+  await fetch('/database/playerNamesIds')
+    .then((res) => res.body.map((x) => x.id))
+    .then((players) => fetchIds('/database/players', players))
+    .then(flatWriteList);
 }
 
 async function logGameStatsheets() {
