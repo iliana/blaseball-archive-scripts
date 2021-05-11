@@ -1,5 +1,5 @@
 import 'log-timestamp';
-import 'dotenv/config.js';
+import 'dotenv/config';
 import { EventSource } from 'launchdarkly-eventsource';
 import manakin from 'manakin';
 import { dynamic as setIntervalAsyncDynamic } from 'set-interval-async';

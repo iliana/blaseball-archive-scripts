@@ -11,21 +11,21 @@
   "author": "iliana etaoin <iliana@buttslol.net>",
   "license": "MIT",
   "dependencies": {
-    "aws-sdk": "^2.884.0",
+    "aws-sdk": "^2.904.0",
     "bottleneck": "^2.19.5",
-    "dotenv": "^8.2.0",
+    "dotenv": "^9.0.2",
     "fast-json-stable-stringify": "^2.1.0",
     "imurmurhash": "^0.1.4",
-    "launchdarkly-eventsource": "^1.4.0",
+    "launchdarkly-eventsource": "^1.4.1",
     "lodash.chunk": "^4.2.0",
     "log-timestamp": "^0.3.0",
     "manakin": "^0.5.2",
-    "set-interval-async": "^2.0.1",
+    "set-interval-async": "^2.0.3",
     "superagent": "^6.1.0",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "eslint": "^7.24.0",
+    "eslint": "^7.26.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-plugin-import": "^2.22.1"
   }
