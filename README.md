@@ -31,6 +31,8 @@ Logs are gzipped files that contain a JSON object per line. Each JSON object has
 
 ## Chronicler data type mapping
 
+(https://github.com/xSke/Chronicler/blob/main/SIBR.Storage.Data/Models/UpdateType.cs)
+
 | Chronicler data type | Endpoint used |
 | -------------------- | ------------- |
 | Player | `/database/players` |
@@ -66,4 +68,6 @@ Logs are gzipped files that contain a JSON object per line. Each JSON object has
 | RenovationProgress | `/database/renovationProgress` |
 | TeamElectionStats | `/database/teamElectionStats` |
 | Item | Player: `.items[]` |
+| CommunityChestProgress | Stream: `.value.leagues.stats.communityChest` |
+| GiftProgress | `/database/giftProgress` |
 | (feed; not a Chronicler update type) | `/database/feed/global` |
