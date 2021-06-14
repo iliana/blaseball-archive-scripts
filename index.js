@@ -110,6 +110,19 @@ async function logOffseasonRecap() {
   }
 }
 
+async function logRenos() {
+  await streamDataReady;
+  const stadiums = streamData?.leagues?.stadiums;
+  if (stadiums === undefined) {
+    throw new Error('stadiums not found in stream data');
+  }
+
+  const renos = [...new Set(stadiums.flatMap(
+    (stadium) => [...stadium.renoHand, ...stadium.renoDiscard],
+  ))];
+  await fetchIds('/database/renovations', renos).then(flatWriteList);
+}
+
 async function logRenoProgress() {
   const teams = await allTeams();
   await Promise.all(teams
@@ -145,6 +158,7 @@ async function logFeed() {
   [logSingle('/database/offseasonSetup'), 1],
   [logSingle('/database/giftProgress'), 1],
   [logSingle('/database/sunsun'), 1],
+  [logRenos, 1],
   [logRenoProgress, 1],
   [logTeamElectionStats, 1],
 
