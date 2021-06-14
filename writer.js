@@ -3,14 +3,13 @@ import path from 'path';
 import stream from 'stream';
 import url from 'url';
 import zlib from 'zlib';
-import S3 from 'aws-sdk/clients/s3.js';
 import stringify from 'fast-json-stable-stringify';
 import MurmurHash3 from 'imurmurhash';
 import manakin from 'manakin';
 import * as uuid from 'uuid';
 
 const { local: console } = manakin;
-const s3 = new S3();
+const s3 = process.env.S3_BUCKET ? require('aws-sdk/clients/s3.js')() : undefined;
 
 // use this method to look up the id field of an object, in case this changes
 // globally (like it did when TGB moved from mongodb to postgres)
