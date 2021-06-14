@@ -70,4 +70,5 @@ Logs are gzipped files that contain a JSON object per line. Each JSON object has
 | Item | Player: `.items[]` |
 | CommunityChestProgress | Stream: `.value.leagues.stats.communityChest` |
 | GiftProgress | `/database/giftProgress` |
+| (not yet in Chronicler) | `/database/sunsun` |
 | (feed; not a Chronicler update type) | `/database/feed/global` |
