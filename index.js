@@ -153,6 +153,7 @@ async function logFeed() {
   [logSeasonStatsheet, 1],
   [logOffseasonRecap, 1],
   [logSingle('/api/getIdols'), 1],
+  [logSingle('/api/getRisingStars'), 1],
   [logSingle('/api/getTribute'), 1],
   [logSingle('/database/globalEvents'), 1],
   [logSingle('/database/offseasonSetup'), 1],
