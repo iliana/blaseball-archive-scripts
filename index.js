@@ -155,6 +155,7 @@ async function logFeed() {
   [logSingle('/api/getIdols'), 1],
   [logSingle('/api/getRisingStars'), 1],
   [logSingle('/api/getTribute'), 1],
+  [logSingle('/database/fuelProgress'), 1],
   [logSingle('/database/globalEvents'), 1],
   [logSingle('/database/offseasonSetup'), 1],
   [logSingle('/database/giftProgress'), 1],
