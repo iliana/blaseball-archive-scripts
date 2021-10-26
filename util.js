@@ -5,7 +5,7 @@ import superagent from 'superagent';
 
 const { local: console } = manakin;
 
-export const BASE_URL = 'https://www.blaseball.com';
+export const BASE_URL = 'https://api.blaseball.com';
 
 // 20 requests per second, at most 8 concurrent requests
 const limiter = new Bottleneck({ minTime: 1000 / 20, maxConcurrent: 8 });
