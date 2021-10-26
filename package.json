@@ -11,7 +11,7 @@
   "author": "iliana etaoin <iliana@buttslol.net>",
   "license": "MIT",
   "dependencies": {
-    "aws-sdk": "^2.927.0",
+    "aws-sdk": "^2.1015.0",
     "bottleneck": "^2.19.5",
     "dotenv": "^10.0.0",
     "fast-json-stable-stringify": "^2.1.0",
@@ -25,8 +25,8 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "eslint": "^7.28.0",
+    "eslint": "^7.32.0",
     "eslint-config-airbnb-base": "^14.2.1",
-    "eslint-plugin-import": "^2.23.4"
+    "eslint-plugin-import": "^2.25.2"
   }
 }
