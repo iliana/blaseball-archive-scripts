@@ -13,7 +13,7 @@ const limiter = new Bottleneck({ minTime: 1000 / 20, maxConcurrent: 8 });
 export const fetch = limiter.wrap(async (url, query) => {
   const req = superagent.get(url.startsWith('/') ? `${BASE_URL}${url}` : url)
     .query(query)
-    .timeout({ response: 2000, deadline: 15000 })
+    .timeout({ response: 15000, deadline: 30000 })
     .retry(5);
   const qs = Object.entries(req.qs).map(([k, v]) => {
     const vDesc = v.toString().includes(',') ? `{${v.split(',').length}}` : v;

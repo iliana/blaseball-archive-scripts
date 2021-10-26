@@ -85,6 +85,7 @@ async function logGameStatsheets() {
     .then(flatWriteList);
 }
 
+/*
 async function logSeasonStatsheet() {
   await streamDataReady;
   const season = streamData?.games?.season;
@@ -94,10 +95,11 @@ async function logSeasonStatsheet() {
 
   await fetchIds('/database/seasonStatsheets', [season.stats]).then(flatWriteList);
 }
+*/
 
 async function logOffseasonRecap() {
   await streamDataReady;
-  const season = streamData?.games?.season?.seasonNumber;
+  const season = streamData?.games?.sim?.season;
   if (season === undefined) {
     throw new Error('season number not found in stream data');
   }
@@ -150,17 +152,13 @@ async function logFeed() {
 [
   [logPlayers, 1],
   [logGameStatsheets, 1],
-  [logSeasonStatsheet, 1],
+  // [logSeasonStatsheet, 1],
   [logOffseasonRecap, 1],
-  [logSingle('/api/getIdols'), 1],
-  [logSingle('/api/getRisingStars'), 1],
   [logSingle('/api/getTribute'), 1],
   [logSingle('/database/fuelProgress'), 1],
   [logSingle('/database/globalEvents'), 1],
   [logSingle('/database/offseasonSetup'), 1],
   [logSingle('/database/giftProgress'), 1],
-  [logSingle('/database/sunsun'), 1],
-  [logSingle('/database/vault'), 1],
   [logRenos, 1],
   [logRenoProgress, 1],
   [logTeamElectionStats, 1],
