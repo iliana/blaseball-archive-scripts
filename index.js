@@ -172,8 +172,8 @@ async function logAvailableBets() {
   [logSingle('/database/offseasonSetup'), 1],
   [logSingle('/database/giftProgress'), 5],
   [logRenos, 5],
-  [logRenoProgress, 5],
-  [logTeamElectionStats, 5],
+  // [logRenoProgress, 5],
+  // [logTeamElectionStats, 5],
   [logAvailableBets, 5],
 
   [logFeed, 5],
