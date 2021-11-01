@@ -149,6 +149,15 @@ async function logFeed() {
   await fetch('/database/feed/global', { sort: 2, limit: 50000 }).then(writeList);
 }
 
+async function logAvailableBets() {
+  await streamDataReady;
+  const today = streamData?.games?.sim?.day;
+  await Promise.all([...Array(10).keys()]
+    .map((day) => day + today)
+    .map((day) => fetch('/bets/availableBets', { day })
+      .then((res) => write(res, day))));
+}
+
 [
   [logPlayers, 1],
   [logGameStatsheets, 1],
@@ -165,6 +174,7 @@ async function logFeed() {
   [logRenos, 5],
   [logRenoProgress, 5],
   [logTeamElectionStats, 5],
+  [logAvailableBets, 5],
 
   [logFeed, 5],
 ].forEach(([f, min]) => {
