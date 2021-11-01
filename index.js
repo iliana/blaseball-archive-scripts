@@ -49,6 +49,7 @@ source.on('error', (err) => {
   console.error(err);
 });
 
+/*
 async function allTeams() {
   await streamDataReady;
   const teams = streamData?.leagues?.teams;
@@ -58,6 +59,7 @@ async function allTeams() {
   }
   return teams;
 }
+*/
 
 function logSingle(url, query) {
   return async () => { await fetch(url, query).then(write); };
@@ -125,6 +127,7 @@ async function logRenos() {
   await fetchIds('/database/renovations', renos).then(flatWriteList);
 }
 
+/*
 async function logRenoProgress() {
   const teams = await allTeams();
   await Promise.all(teams
@@ -139,6 +142,7 @@ async function logTeamElectionStats() {
     .map((team) => fetch('/database/teamElectionStats', { id: team.id })
       .then((res) => write(res, team.id))));
 }
+*/
 
 async function logFeed() {
   // fetch the last 10 minutes every 5 minutes. simple!
