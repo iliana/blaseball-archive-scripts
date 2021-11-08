@@ -171,6 +171,7 @@ async function logAvailableBets() {
   [logSingle('/api/daysSinceLastIncineration'), 5],
   [logSingle('/api/games/schedule'), 1],
   [logSingle('/api/getTribute'), 1],
+  [logSingle('/championbets/availableBets'), 5],
   [logSingle('/database/fuelProgress'), 5],
   [logSingle('/database/globalEvents'), 1],
   [logSingle('/database/offseasonSetup'), 1],
