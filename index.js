@@ -162,6 +162,24 @@ async function logAvailableBets() {
       .then((res) => write(res, day))));
 }
 
+async function logConfigs() {
+  const base = 'https://blaseball-configs.s3.us-west-2.amazonaws.com/';
+  const paths = [
+    'attributes.json',
+    'fanart.json',
+    'glossary_words.json',
+    'library.json',
+    'sponsor_data.json',
+    'stadium_prefabs.json',
+    'feed_season_list.json',
+    'the_beat.json',
+    'the_book.json',
+  ];
+  return Promise.all(paths
+    .map((path) => fetch(`${base}${path}`)
+      .then((res) => write(res))));
+}
+
 [
   [logPlayers, 1],
   [logGameStatsheets, 1],
@@ -180,6 +198,7 @@ async function logAvailableBets() {
   // [logRenoProgress, 5],
   // [logTeamElectionStats, 5],
   [logAvailableBets, 5],
+  [logConfigs, 1],
 
   [logFeed, 5],
 ].forEach(([f, min]) => {
