@@ -211,6 +211,9 @@ async function logTutorialData() {
 
   [logFeed, 5],
 ].forEach(([f, min]) => {
-  setIntervalAsync(() => f().catch(() => {}), min * 60 * 1000);
-  f().catch(() => {});
+  const wrapped = () => f().catch((e) => {
+    console.error(`${e.message} ${e.response?.req?.path}`);
+  });
+  setIntervalAsync(wrapped, min * 60 * 1000);
+  wrapped();
 });
