@@ -180,6 +180,14 @@ async function logConfigs() {
       .then((res) => write(res))));
 }
 
+async function logTutorialData() {
+  const paths = [
+    '/tutorial/onboardingA',
+    ...[...Array(15)].map((_, i) => `/tutorial/gamedata/onboardingA/${i}`),
+  ];
+  return Promise.all(paths.map((path) => fetch(path).then((res) => write(res))));
+}
+
 [
   [logPlayers, 1],
   [logGameStatsheets, 1],
@@ -199,6 +207,7 @@ async function logConfigs() {
   // [logTeamElectionStats, 5],
   [logAvailableBets, 5],
   [logConfigs, 1],
+  [logTutorialData, 15],
 
   [logFeed, 5],
 ].forEach(([f, min]) => {
