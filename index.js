@@ -196,6 +196,7 @@ async function logTutorialData() {
   [logSingle('/api/championCallout'), 5],
   [logSingle('/api/daysSinceLastIncineration'), 5],
   [logSingle('/api/games/schedule'), 1],
+  [logSingle('/api/getPeanutPower'), 1],
   [logSingle('/api/getTribute'), 1],
   [logSingle('/championbets/availableBets'), 5],
   [logSingle('/database/fuelProgress'), 5],
