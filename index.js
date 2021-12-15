@@ -4,9 +4,7 @@ import { EventSource } from 'launchdarkly-eventsource';
 import manakin from 'manakin';
 import { dynamic as setIntervalAsyncDynamic } from 'set-interval-async';
 import { BASE_URL, fetch, fetchIds } from './util.js';
-import {
-  writeEntry, write, writeList, flatWriteList,
-} from './writer.js';
+import { writeEntry, write, flatWriteList } from './writer.js';
 
 const { local: console } = manakin;
 const { setIntervalAsync } = setIntervalAsyncDynamic;
@@ -142,7 +140,6 @@ async function logTeamElectionStats() {
     .map((team) => fetch('/database/teamElectionStats', { id: team.id })
       .then((res) => write(res, team.id))));
 }
-*/
 
 async function logFeed() {
   // fetch the last 10 minutes every 5 minutes. simple!
@@ -152,6 +149,7 @@ async function logFeed() {
   // something out better for logging upnuts
   await fetch('/database/feed/global', { sort: 2, limit: 50000 }).then(writeList);
 }
+*/
 
 async function logAvailableBets() {
   await streamDataReady;
@@ -210,7 +208,7 @@ async function logTutorialData() {
   [logConfigs, 1],
   [logTutorialData, 15],
 
-  [logFeed, 5],
+  // [logFeed, 5],
 ].forEach(([f, min]) => {
   const wrapped = () => f().catch((e) => {
     console.error(`${e.message} ${e.response?.req?.path}`);
