@@ -1,13 +1,13 @@
-import fs from 'fs';
-import path from 'path';
-import stream from 'stream';
-import url from 'url';
-import zlib from 'zlib';
-import S3 from 'aws-sdk/clients/s3.js';
-import stringify from 'fast-json-stable-stringify';
-import MurmurHash3 from 'imurmurhash';
-import manakin from 'manakin';
-import * as uuid from 'uuid';
+import fs from "fs";
+import path from "path";
+import stream from "stream";
+import url from "url";
+import zlib from "zlib";
+import S3 from "aws-sdk/clients/s3.js";
+import stringify from "fast-json-stable-stringify";
+import MurmurHash3 from "imurmurhash";
+import manakin from "manakin";
+import * as uuid from "uuid";
 
 const { local: console } = manakin;
 const s3 = new S3();
@@ -27,14 +27,16 @@ function handleErr(err) {
 }
 
 const dirname = path.dirname(url.fileURLToPath(import.meta.url));
-fs.mkdir(path.join(dirname, 'log'), { recursive: true }, handleErr);
+fs.mkdir(path.join(dirname, "log"), { recursive: true }, handleErr);
 
 let currentLog;
 function newStream() {
-  currentLog = fs.createWriteStream(path.join(dirname, 'log', `${Date.now()}.json`), { flags: 'wx' });
+  currentLog = fs.createWriteStream(path.join(dirname, "log", `${Date.now()}.json`), {
+    flags: "wx",
+  });
   console.info(`started ${path.basename(currentLog.path)}`);
 
-  currentLog.on('finish', () => {
+  currentLog.on("finish", () => {
     // swap out the current logger for a new one
     const oldLog = currentLog;
     newStream();
@@ -45,31 +47,41 @@ function newStream() {
       const source = fs.createReadStream(oldLog.path);
       const destination = fs.createWriteStream(`${oldLog.path}.gz`);
 
-      destination.on('finish', () => {
+      destination.on("finish", () => {
         console.info(`finished ${path.basename(destination.path)}`);
 
         if (process.env.S3_BUCKET) {
           const Bucket = process.env.S3_BUCKET;
-          const Key = `${process.env.S3_PREFIX ?? ''}${path.basename(destination.path)}`;
-          s3.upload({ Bucket, Key, Body: fs.createReadStream(destination.path) })
+          const Key = `${process.env.S3_PREFIX ?? ""}${path.basename(destination.path)}`;
+          s3.upload({
+            Bucket,
+            Key,
+            Body: fs.createReadStream(destination.path),
+          })
             .promise()
             .then(() => {
               console.info(`uploaded ${path.basename(destination.path)} to s3://${Bucket}/${Key}`);
             })
-            .catch((err) => { console.error(err); });
+            .catch((err) => {
+              console.error(err);
+            });
         }
       });
 
-      stream.pipeline(source, gzip, destination, handleErr);
+      stream.pipeline(source, gzip, destination, (err) => {
+        if (err) {
+          handleErr(err);
+        } else {
+          fs.unlink(oldLog.path, handleErr);
+        }
+      });
     } else {
       console.info(`removing empty ${path.basename(oldLog.path)}`);
+      fs.unlink(oldLog.path, handleErr);
     }
-
-    // remove the uncompressed log
-    fs.unlink(oldLog.path, handleErr);
   });
 
-  currentLog.on('error', (err) => {
+  currentLog.on("error", (err) => {
     handleErr(err);
     newStream();
   });
@@ -81,34 +93,36 @@ if (currentLog === undefined) {
 setInterval(() => currentLog.end(), 15 * 60 * 1000);
 
 const processId = (() => {
-  const p = path.join(dirname, '.client_id');
+  const p = path.join(dirname, ".client_id");
   try {
-    return fs.readFileSync(p, 'utf8').trim();
+    return fs.readFileSync(p, "utf8").trim();
   } catch (err) {
-    if (err.code === 'ENOENT') {
+    if (err.code === "ENOENT") {
       const id = uuid.v4();
-      fs.writeFileSync(p, id, 'utf8');
+      fs.writeFileSync(p, id, "utf8");
       return id;
     }
     throw err;
   }
 })();
 
-const cache = {};
+const cache = new Map();
 
-export function writeEntry({
-  endpoint, id, time, data,
-}) {
+export function writeEntry({ endpoint, id, time, data }) {
+  const hashKey = `${endpoint}-${id}`;
   const hash = new MurmurHash3(stringify(data)).result();
-  if (cache[endpoint] === undefined) {
-    cache[endpoint] = {};
-  } else if (cache[endpoint][id] === hash) {
+  if (cache.get(hashKey) === hash) {
     return data;
   }
-  cache[endpoint][id] = hash;
+  cache.delete(hashKey);
+  cache.set(hashKey, hash);
+  // limit the map to the 10000 most recently-inserted keys
+  [...Array(Math.max(cache.size - 10000, 0))].forEach(() =>
+    cache.delete(cache.keys().next().value)
+  );
 
   const entry = {
-    version: '2',
+    version: "2",
     processId,
     endpoint,
     id,
@@ -121,7 +135,7 @@ export function writeEntry({
 
 function resMeta(res) {
   return {
-    endpoint: res.req.path.split('?')[0],
+    endpoint: res.req.path.split("?")[0],
     time: res.headers.date === undefined ? undefined : new Date(res.headers.date).getTime(),
   };
 }
@@ -140,11 +154,13 @@ export function write(res, id) {
 export function writeList(res) {
   const meta = resMeta(res);
   if (res.body) {
-    res.body.forEach((data) => writeEntry({
-      ...meta,
-      id: getId(data),
-      data,
-    }));
+    res.body.forEach((data) =>
+      writeEntry({
+        ...meta,
+        id: getId(data),
+        data,
+      })
+    );
   }
   return res.body;
 }

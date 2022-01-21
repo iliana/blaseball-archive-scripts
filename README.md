@@ -33,43 +33,43 @@ Logs are gzipped files that contain a JSON object per line. Each JSON object has
 
 (https://github.com/xSke/Chronicler/blob/main/SIBR.Storage.Data/Models/UpdateType.cs)
 
-| Chronicler data type | Endpoint used |
-| -------------------- | ------------- |
-| Player | `/database/players` |
-| Team | Stream: `.value.leagues.teams[]` |
-| Stream | `/events/streamData` |
-| Game | Stream: `.value.games.schedule[]` |
-| Idols | `/api/getIdols` |
-| Tributes | `/api/getTribute` |
-| Temporal | Stream: `.value.temporal` |
-| Tiebreakers | Stream: `.value.leagues.tiebreakers[]` |
-| Sim | Stream: `.value.games.sim` |
-| GlobalEvents | `/database/globalEvents` |
-| OffseasonSetup | `/database/offseasonSetup` |
-| Standings | Stream: `.value.games.standings` |
-| Season | Stream: `.value.games.season` |
-| League | Stream: `.value.leagues.leagues[]` |
-| Subleague | Stream: `.value.leagues.subleagues[]` |
-| Division | Stream: `.value.leagues.divisions[]` |
-| GameStatsheet | `/database/gameStatsheets` |
-| TeamStatsheet | `/database/teamStatsheets` |
-| PlayerStatsheet | `/database/playerStatsheets` |
-| SeasonStatsheet | `/database/seasonStatsheets` |
-| BossFight | Stream: `.value.fights.bossFights[]` |
-| OffseasonRecap | `/database/offseasonRecap` |
-| BonusResult | `/database/bonusResults` |
-| DecreeResult | `/database/decreeResults` |
-| EventResult | `/database/eventResults` |
-| Playoffs | Stream: `.value.games.postseason.playoffs` |
-| PlayoffRound | Stream: `.value.games.postseason.allRounds[]` |
-| PlayoffMatchup | Stream: `.value.games.postseason.allMatchups[]` |
-| Tournament | Stream: `.value.games.tournament` |
-| Stadium | Stream: `.value.leagues.stadiums[]` |
-| RenovationProgress | `/database/renovationProgress` |
-| TeamElectionStats | `/database/teamElectionStats` |
-| Item | Player: `.items[]` |
-| CommunityChestProgress | Stream: `.value.leagues.stats.communityChest` |
-| GiftProgress | `/database/giftProgress` |
-| (not yet in Chronicler) | `/database/sunsun` |
-| (not yet in Chronicler) | `/database/renovations` |
-| (feed; not a Chronicler update type) | `/database/feed/global` |
+| Chronicler data type                 | Endpoint used                                   |
+| ------------------------------------ | ----------------------------------------------- |
+| Player                               | `/database/players`                             |
+| Team                                 | Stream: `.value.leagues.teams[]`                |
+| Stream                               | `/events/streamData`                            |
+| Game                                 | Stream: `.value.games.schedule[]`               |
+| Idols                                | `/api/getIdols`                                 |
+| Tributes                             | `/api/getTribute`                               |
+| Temporal                             | Stream: `.value.temporal`                       |
+| Tiebreakers                          | Stream: `.value.leagues.tiebreakers[]`          |
+| Sim                                  | Stream: `.value.games.sim`                      |
+| GlobalEvents                         | `/database/globalEvents`                        |
+| OffseasonSetup                       | `/database/offseasonSetup`                      |
+| Standings                            | Stream: `.value.games.standings`                |
+| Season                               | Stream: `.value.games.season`                   |
+| League                               | Stream: `.value.leagues.leagues[]`              |
+| Subleague                            | Stream: `.value.leagues.subleagues[]`           |
+| Division                             | Stream: `.value.leagues.divisions[]`            |
+| GameStatsheet                        | `/database/gameStatsheets`                      |
+| TeamStatsheet                        | `/database/teamStatsheets`                      |
+| PlayerStatsheet                      | `/database/playerStatsheets`                    |
+| SeasonStatsheet                      | `/database/seasonStatsheets`                    |
+| BossFight                            | Stream: `.value.fights.bossFights[]`            |
+| OffseasonRecap                       | `/database/offseasonRecap`                      |
+| BonusResult                          | `/database/bonusResults`                        |
+| DecreeResult                         | `/database/decreeResults`                       |
+| EventResult                          | `/database/eventResults`                        |
+| Playoffs                             | Stream: `.value.games.postseason.playoffs`      |
+| PlayoffRound                         | Stream: `.value.games.postseason.allRounds[]`   |
+| PlayoffMatchup                       | Stream: `.value.games.postseason.allMatchups[]` |
+| Tournament                           | Stream: `.value.games.tournament`               |
+| Stadium                              | Stream: `.value.leagues.stadiums[]`             |
+| RenovationProgress                   | `/database/renovationProgress`                  |
+| TeamElectionStats                    | `/database/teamElectionStats`                   |
+| Item                                 | Player: `.items[]`                              |
+| CommunityChestProgress               | Stream: `.value.leagues.stats.communityChest`   |
+| GiftProgress                         | `/database/giftProgress`                        |
+| (not yet in Chronicler)              | `/database/sunsun`                              |
+| (not yet in Chronicler)              | `/database/renovations`                         |
+| (feed; not a Chronicler update type) | `/database/feed/global`                         |
