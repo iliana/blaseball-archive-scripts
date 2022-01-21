@@ -8,6 +8,12 @@ import { write, writeList, flatWriteList } from "./writer.js";
 const { local: console } = manakin;
 const { setIntervalAsync } = setIntervalAsyncDynamic;
 
+let simData = {};
+let resolveSimData;
+const simDataReady = new Promise((resolve) => {
+  resolveSimData = resolve;
+});
+
 async function logConfigs() {
   const base = "https://blaseball-configs.s3.us-west-2.amazonaws.com/";
   const paths = [
@@ -30,11 +36,40 @@ function logList(url, query) {
   };
 }
 
+async function logOffseasonRecap() {
+  await simDataReady;
+  const { season } = simData;
+  if (season === undefined) {
+    throw new Error("season number not found in simulation data");
+  }
+
+  const recap = await fetch("/database/offseasonRecap", { season }).then(write);
+  if (recap !== undefined) {
+    await Promise.all(
+      ["bonusResults", "decreeResults", "eventResults"]
+        .filter((key) => recap[key] !== undefined)
+        .map((key) => fetchIds(`/database/${key}`, recap[key]).then(flatWriteList))
+    );
+  }
+}
+
 async function logPlayers() {
   await fetch("/database/playerNamesIds")
     .then((res) => res.body.map((x) => x.id))
     .then((players) => fetchIds("/database/players", players))
     .then(flatWriteList);
+}
+
+async function logSimData() {
+  await fetch("/database/simulationData")
+    .then(write)
+    .then((body) => {
+      simData = body;
+      if (resolveSimData !== undefined) {
+        resolveSimData();
+        resolveSimData = undefined;
+      }
+    });
 }
 
 function logSingle(url, query) {
@@ -58,7 +93,9 @@ function logTutorialData(id) {
   [logList("/database/allDivisions"), 1],
   [logList("/database/allSubleagues"), 1],
   [logList("/database/allTeams"), 1],
+  [logOffseasonRecap, 5],
   [logPlayers, 1],
+  [logSimData, 1],
   [logSingle("/api/championCallout"), 1],
   [logSingle("/api/daysSinceLastIncineration"), 1],
   [logSingle("/api/games/schedule"), 5],
