@@ -135,26 +135,29 @@ export function writeEntry({ endpoint, id, time, data }) {
 
 function resMeta(res) {
   return {
-    endpoint: res.req.path.split("?")[0],
-    time: res.headers.date === undefined ? undefined : new Date(res.headers.date).getTime(),
+    endpoint: new URL(res.url).pathname,
+    time:
+      res.headers.get("date") === undefined
+        ? undefined
+        : new Date(res.headers.get("date")).getTime(),
   };
 }
 
-export function write(res, id) {
-  if (res.body) {
+export function write({ res, body }, id) {
+  if (body) {
     writeEntry({
       ...resMeta(res),
-      id: id ?? getId(res.body),
-      data: res.body,
+      id: id ?? getId(body),
+      data: body,
     });
   }
-  return res.body;
+  return body;
 }
 
-export function writeList(res) {
+export function writeList({ res, body }) {
   const meta = resMeta(res);
-  if (res.body) {
-    res.body.forEach((data) =>
+  if (body) {
+    body.forEach((data) =>
       writeEntry({
         ...meta,
         id: getId(data),
@@ -162,7 +165,7 @@ export function writeList(res) {
       })
     );
   }
-  return res.body;
+  return body;
 }
 
 export function flatWriteList(responses) {

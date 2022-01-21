@@ -110,7 +110,7 @@ function logTutorialData(id) {
 ].forEach(([f, min]) => {
   const wrapped = () =>
     f().catch((e) => {
-      console.error(`${e.message} ${e.response?.req?.path}`);
+      console.error(e.message);
     });
   setIntervalAsync(wrapped, min * 60 * 1000);
   wrapped();

@@ -7,7 +7,7 @@
   "scripts": {
     "fix": "prettier -w . && eslint --ext .js . --fix"
   },
-  "author": "iliana etaoin <iliana@buttslol.net>",
+  "author": "iliana quorum <iliana@sibr.dev>",
   "license": "MIT",
   "dependencies": {
     "aws-sdk": "^2.1015.0",
@@ -18,10 +18,9 @@
     "lodash.chunk": "^4.2.0",
     "log-timestamp": "^0.3.0",
     "manakin": "^0.5.2",
+    "node-fetch": "^3.2.0",
     "pusher-js": "^7.0.3",
     "set-interval-async": "^2.0.3",
-    "superagent": "^7.1.1",
-    "superagent-throttle": "^1.0.1",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
