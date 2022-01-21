@@ -21,7 +21,7 @@ async function logConfigs() {
     "the_beat.json",
     "the_book.json",
   ];
-  return Promise.all(paths.map((path) => fetch(`${base}${path}`).then((res) => write(res))));
+  await Promise.all(paths.map((path) => fetch(`${base}${path}`).then((res) => write(res))));
 }
 
 function logList(url, query) {
@@ -43,12 +43,14 @@ function logSingle(url, query) {
   };
 }
 
-async function logTutorialData() {
-  const paths = [
-    "/tutorial/onboardingA",
-    ...[...Array(15)].map((_, i) => `/tutorial/gamedata/onboardingA/${i}`),
-  ];
-  return Promise.all(paths.map((path) => fetch(path).then((res) => write(res))));
+function logTutorialData(id) {
+  return async () => {
+    const paths = [
+      `/tutorial/${id}`,
+      ...[...Array(15)].map((_, i) => `/tutorial/gamedata/${id}/${i}`),
+    ];
+    await Promise.all(paths.map((path) => fetch(path).then((res) => write(res))));
+  };
 }
 
 [
@@ -67,7 +69,7 @@ async function logTutorialData() {
   [logSingle("/database/giftProgress"), 5],
   [logSingle("/database/globalEvents"), 1],
   [logSingle("/database/offseasonSetup"), 1],
-  [logTutorialData, 15],
+  [logTutorialData("onboardingA"), 15],
 ].forEach(([f, min]) => {
   const wrapped = () =>
     f().catch((e) => {
