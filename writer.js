@@ -109,17 +109,19 @@ const processId = (() => {
 const cache = new Map();
 
 export function writeEntry({ endpoint, id, time, data }) {
-  const hashKey = `${endpoint}-${id}`;
-  const hash = new MurmurHash3(stringify(data)).result();
-  if (cache.get(hashKey) === hash) {
-    return data;
+  if (endpoint !== "pusher") {
+    const hashKey = `${endpoint}-${id}`;
+    const hash = new MurmurHash3(stringify(data)).result();
+    if (cache.get(hashKey) === hash) {
+      return data;
+    }
+    cache.delete(hashKey);
+    cache.set(hashKey, hash);
+    // limit the map to the 10000 most recently-inserted keys
+    [...Array(Math.max(cache.size - 10000, 0))].forEach(() =>
+      cache.delete(cache.keys().next().value)
+    );
   }
-  cache.delete(hashKey);
-  cache.set(hashKey, hash);
-  // limit the map to the 10000 most recently-inserted keys
-  [...Array(Math.max(cache.size - 10000, 0))].forEach(() =>
-    cache.delete(cache.keys().next().value)
-  );
 
   const entry = {
     version: "2",

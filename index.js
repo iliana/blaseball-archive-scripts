@@ -1,12 +1,28 @@
 import "log-timestamp";
 import "dotenv/config";
 import manakin from "manakin";
+import Pusher from "pusher-js";
 import { dynamic as setIntervalAsyncDynamic } from "set-interval-async";
 import { fetch, fetchIds } from "./util.js";
-import { write, writeList, flatWriteList } from "./writer.js";
+import { write, writeEntry, writeList, flatWriteList } from "./writer.js";
 
 const { local: console } = manakin;
 const { setIntervalAsync } = setIntervalAsyncDynamic;
+
+const pusher = new Pusher("ddb8c477293f80ee9c63", { cluster: "us3" });
+
+["ticker"].forEach((channel) => {
+  pusher.subscribe(channel).bind_global((event, data) => {
+    if (!event.startsWith("pusher:")) {
+      writeEntry({
+        endpoint: "pusher",
+        id: { channel, event },
+        data,
+      });
+    }
+  });
+  console.info(`subscribed to ${channel} via pusher`);
+});
 
 let simData = {};
 let resolveSimData;
