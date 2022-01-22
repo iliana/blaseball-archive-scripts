@@ -11,16 +11,22 @@ const { setIntervalAsync } = setIntervalAsyncDynamic;
 
 const pusher = new Pusher("ddb8c477293f80ee9c63", { cluster: "us3" });
 
-["ticker"].forEach((channel) => {
-  pusher.subscribe(channel).bind_global((event, data) => {
-    if (!event.startsWith("pusher:")) {
+function pusherBind(channel) {
+  return (event, data) => {
+    try {
       writeEntry({
         endpoint: "pusher",
         id: { channel, event },
         data,
       });
+    } catch (e) {
+      console.error(e);
     }
-  });
+  };
+}
+
+["sim-data", "temporal", "ticker"].forEach((channel) => {
+  pusher.subscribe(channel).bind_global(pusherBind(channel));
   console.info(`subscribed to ${channel} via pusher`);
 });
 
@@ -104,6 +110,13 @@ function logTutorialData(id) {
   };
 }
 
+/* todo:
+ * /api/games/schedule, but base64 weirdness
+ * /database/games, plus subscribing to pusher for active games
+ * /database/{game,team,player}Statsheets
+ * /database/league
+ */
+
 [
   [logConfigs, 1],
   [logList("/database/allDivisions"), 1],
@@ -114,14 +127,18 @@ function logTutorialData(id) {
   [logSimData, 1],
   [logSingle("/api/championCallout"), 1],
   [logSingle("/api/daysSinceLastIncineration"), 1],
-  [logSingle("/api/games/schedule"), 5],
+  [logSingle("/api/elections"), 1],
   [logSingle("/api/getPeanutPower"), 1],
   [logSingle("/api/getTribute"), 1],
+  [logSingle("/api/sim"), 1],
+  [logSingle("/api/standings"), 1],
+  [logSingle("/api/temporal"), 0.25],
+  [logSingle("/api/tournament/bracket"), 1],
   [logSingle("/championbets/availableBets"), 5],
   [logSingle("/database/fuelProgress"), 5],
-  [logSingle("/database/giftProgress"), 5],
   [logSingle("/database/globalEvents"), 1],
   [logSingle("/database/offseasonSetup"), 1],
+  [logSingle("/database/simulationData"), 1],
   [logTutorialData("onboardingA"), 15],
 ].forEach(([f, min]) => {
   const wrapped = () =>

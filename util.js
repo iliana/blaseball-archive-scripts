@@ -33,11 +33,11 @@ export const fetch = limiter.wrap(async (originalUrl, query = {}) => {
       throw new Error(`${plainUrl} returned ${ret.res.status}`);
     }
     ret.body = await ret.res.json();
-  } catch (err) {
-    if (err instanceof AbortError) {
+  } catch (e) {
+    if (e instanceof AbortError) {
       console.warn(`timeout ${plainUrl} ${qs}`);
     } else {
-      throw err;
+      throw e;
     }
   } finally {
     clearTimeout(timeout);
