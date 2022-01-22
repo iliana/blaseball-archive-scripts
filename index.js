@@ -138,7 +138,6 @@ function logTutorialData(id) {
   [logSingle("/database/fuelProgress"), 5],
   [logSingle("/database/globalEvents"), 1],
   [logSingle("/database/offseasonSetup"), 1],
-  [logSingle("/database/simulationData"), 1],
   [logTutorialData("onboardingA"), 15],
 ].forEach(([f, min]) => {
   const wrapped = () =>
