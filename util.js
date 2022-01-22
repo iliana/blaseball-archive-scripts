@@ -28,7 +28,12 @@ export const fetch = limiter.wrap(async (originalUrl, query = {}) => {
 
   const ret = {};
   try {
-    ret.res = await nodeFetch(url, { signal: controller.signal });
+    ret.res = await nodeFetch(url, {
+      headers: {
+        "user-agent": `blaseball-archive-scripts/2.0.0 (https://github.com/iliana/blaseball-archive-scripts; iliana@sibr.dev)`,
+      },
+      signal: controller.signal,
+    });
     if (!ret.res.ok) {
       throw new Error(`${plainUrl} returned ${ret.res.status}`);
     }
