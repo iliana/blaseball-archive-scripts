@@ -30,10 +30,17 @@ function pusherBind(channel) {
   console.info(`subscribed to ${channel} via pusher`);
 });
 
+/* TODO genericize this thing */
 let simData = {};
 let resolveSimData;
 const simDataReady = new Promise((resolve) => {
   resolveSimData = resolve;
+});
+
+const playerIds = new Set();
+let resolvePlayerIds;
+const playerIdsReady = new Promise((resolve) => {
+  resolvePlayerIds = resolve;
 });
 
 async function logConfigs() {
@@ -75,21 +82,35 @@ async function logOffseasonRecap() {
   }
 }
 
+async function logPlayerIds() {
+  await fetch("/database/playerNamesIds").then(({ body }) => {
+    if (body !== undefined) {
+      body.forEach(({ id }) => {
+        playerIds.add(id);
+      });
+    }
+    if (resolvePlayerIds !== undefined) {
+      resolvePlayerIds();
+      resolvePlayerIds = undefined;
+    }
+  });
+}
+
 async function logPlayers() {
-  await fetch("/database/playerNamesIds")
-    .then((res) => res.body.map((x) => x.id))
-    .then((players) => fetchIds("/database/players", players))
-    .then(flatWriteList);
+  await playerIdsReady;
+  await fetchIds("/database/players", [...playerIds]).then(flatWriteList);
 }
 
 async function logSimData() {
   await fetch("/database/simulationData")
     .then(write)
     .then((body) => {
-      simData = body;
-      if (resolveSimData !== undefined) {
-        resolveSimData();
-        resolveSimData = undefined;
+      if (body) {
+        simData = body;
+        if (resolveSimData !== undefined) {
+          resolveSimData();
+          resolveSimData = undefined;
+        }
       }
     });
 }
@@ -111,7 +132,6 @@ function logTutorialData(id) {
 }
 
 /* todo:
- * /api/games/schedule, but base64 weirdness
  * /database/games, plus subscribing to pusher for active games
  * /database/{game,team,player}Statsheets
  * /database/league
@@ -123,6 +143,7 @@ function logTutorialData(id) {
   [logList("/database/allSubleagues"), 1],
   [logList("/database/allTeams"), 1],
   [logOffseasonRecap, 5],
+  [logPlayerIds, 1],
   [logPlayers, 1],
   [logSimData, 1],
   [logSingle("/api/championCallout"), 1],
@@ -132,7 +153,7 @@ function logTutorialData(id) {
   [logSingle("/api/getTribute"), 1],
   [logSingle("/api/sim"), 1],
   [logSingle("/api/standings"), 1],
-  [logSingle("/api/temporal"), 0.25],
+  [logSingle("/api/temporal"), 1 / 4],
   [logSingle("/api/tournament/bracket"), 1],
   [logSingle("/championbets/availableBets"), 5],
   [logSingle("/database/fuelProgress"), 5],

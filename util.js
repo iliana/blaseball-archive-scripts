@@ -1,4 +1,5 @@
 import Bottleneck from "bottleneck";
+import MurmurHash3 from "imurmurhash";
 import chunk from "lodash.chunk";
 import manakin from "manakin";
 import nodeFetch, { AbortError } from "node-fetch";
@@ -10,16 +11,26 @@ export const BASE_URL = "https://api.blaseball.com";
 // 20 requests per second, at most 8 concurrent requests
 const limiter = new Bottleneck({ minTime: 1000 / 20, maxConcurrent: 8 });
 
+const etags = new Map();
+
 export const fetch = limiter.wrap(async (originalUrl, query = {}) => {
+  const headers = {
+    "user-agent": `blaseball-archive-scripts/2.0.0 (https://github.com/iliana/blaseball-archive-scripts; iliana@sibr.dev)`,
+  };
+
   const plainUrl = originalUrl.startsWith("/") ? `${BASE_URL}${originalUrl}` : originalUrl;
   const url = new URL(plainUrl);
   Object.entries(query).forEach(([k, v]) => url.searchParams.set(k, v));
+
+  const hashKey = MurmurHash3(url.toString()).result();
+  if (etags.has(hashKey)) {
+    headers["if-none-match"] = etags.get(hashKey);
+  }
 
   const qs = Object.entries(query).map(([k, v]) => {
     const vDesc = v.toString().includes(",") ? `{${v.split(",").length}}` : v;
     return `${k}=${vDesc}`;
   });
-  console.info(`fetching ${plainUrl} ${qs}`.trim());
 
   const controller = new AbortController();
   const timeout = setTimeout(() => {
@@ -29,13 +40,26 @@ export const fetch = limiter.wrap(async (originalUrl, query = {}) => {
   const ret = {};
   try {
     ret.res = await nodeFetch(url, {
-      headers: {
-        "user-agent": `blaseball-archive-scripts/2.0.0 (https://github.com/iliana/blaseball-archive-scripts; iliana@sibr.dev)`,
-      },
+      headers,
       signal: controller.signal,
     });
+    const logMsg = `${ret.res.status} ${plainUrl} ${qs}`.trim();
+    if (ret.res.status === 304) {
+      // not modified. early return with an undefined body
+      console.info(logMsg);
+      return ret;
+    }
     if (!ret.res.ok) {
-      throw new Error(`${plainUrl} returned ${ret.res.status}`);
+      throw new Error(logMsg);
+    }
+    console.info(logMsg);
+    if (ret.res.headers.has("etag")) {
+      etags.delete(hashKey);
+      etags.set(hashKey, ret.res.headers.get("etag"));
+      // limit the map to the 100 most recently-inserted keys
+      [...Array(Math.max(etags.size - 100, 0))].forEach(() =>
+        etags.delete(etags.keys().next().value)
+      );
     }
     ret.body = await ret.res.json();
   } catch (e) {
