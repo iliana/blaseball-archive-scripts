@@ -117,8 +117,8 @@ export function writeEntry({ endpoint, id, time, data }) {
     }
     cache.delete(hashKey);
     cache.set(hashKey, hash);
-    // limit the map to the 2000 most recently-inserted keys
-    [...Array(Math.max(cache.size - 2000, 0))].forEach(() =>
+    // limit the map to the 4000 most recently-inserted keys
+    [...Array(Math.max(cache.size - 4000, 0))].forEach(() =>
       cache.delete(cache.keys().next().value)
     );
   }
