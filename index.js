@@ -30,6 +30,8 @@ function pusherSubscribe(channel) {
 ["sim-data", "temporal", "ticker"].forEach(pusherSubscribe);
 
 const [season, setSeason] = useState();
+const [leagueId, setLeagueId] = useState();
+const [tiebreakersId, setTiebreakersId] = useState();
 
 const playerIds = new Set();
 const [playersReady, setPlayersReady] = useState();
@@ -48,6 +50,13 @@ async function logConfigs() {
     "the_book.json",
   ];
   await Promise.all(paths.map((path) => fetch(`${base}${path}`).then((res) => write(res))));
+}
+
+async function logLeague() {
+  const league = await fetch("/database/league", { id: await leagueId() }).then(write);
+  if (league) {
+    setTiebreakersId(league.tiebreakers);
+  }
 }
 
 function logList(url, query) {
@@ -86,6 +95,7 @@ async function logSimData() {
   const body = await fetch("/database/simulationData").then(write);
   if (body) {
     setSeason(body.season);
+    setLeagueId(body.league);
   }
 }
 
@@ -93,6 +103,10 @@ function logSingle(url, query) {
   return async () => {
     await fetch(url, query).then(write);
   };
+}
+
+async function logTiebreakers() {
+  await fetch("/database/tiebreakers", { id: await tiebreakersId() }).then(writeList);
 }
 
 function logTutorialData(id) {
@@ -108,13 +122,13 @@ function logTutorialData(id) {
 /* todo:
  * /database/games, plus subscribing to pusher for active games
  * /database/{game,team,player}Statsheets
- * /database/league
  */
 
 [
   [logConfigs, 1],
-  [logList("/database/allDivisions"), 1],
-  [logList("/database/allSubleagues"), 1],
+  [logLeague, 5],
+  [logList("/database/allDivisions"), 5],
+  [logList("/database/allSubleagues"), 5],
   [logList("/database/allTeams"), 1],
   [logOffseasonRecap, 5],
   [logPlayerIds, 1],
@@ -133,6 +147,7 @@ function logTutorialData(id) {
   [logSingle("/database/fuelProgress"), 5],
   [logSingle("/database/globalEvents"), 1],
   [logSingle("/database/offseasonSetup"), 1],
+  [logTiebreakers, 5],
   [logTutorialData("onboardingA"), 15],
 ].forEach(([f, min]) => {
   const wrapped = () =>
