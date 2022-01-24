@@ -8,8 +8,8 @@ const { local: console } = manakin;
 
 export const BASE_URL = "https://api.blaseball.com";
 
-// 20 requests per second, at most 8 concurrent requests
-const limiter = new Bottleneck({ minTime: 1000 / 20, maxConcurrent: 8 });
+// 10 requests per second, at most 5 concurrent requests
+const limiter = new Bottleneck({ minTime: 1000 / 10, maxConcurrent: 5 });
 
 const etags = new Map();
 
