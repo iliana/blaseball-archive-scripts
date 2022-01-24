@@ -11,8 +11,8 @@ const { setIntervalAsync } = setIntervalAsyncDynamic;
 
 const pusher = new Pusher("ddb8c477293f80ee9c63", { cluster: "us3" });
 
-function pusherBind(channel) {
-  return (event, data) => {
+function pusherSubscribe(channel) {
+  pusher.subscribe(channel).bind_global((event, data) => {
     try {
       writeEntry({
         endpoint: "pusher",
@@ -22,13 +22,11 @@ function pusherBind(channel) {
     } catch (e) {
       console.error(e);
     }
-  };
+  });
+  console.info(`subscribed to ${channel} via pusher`);
 }
 
-["sim-data", "temporal", "ticker"].forEach((channel) => {
-  pusher.subscribe(channel).bind_global(pusherBind(channel));
-  console.info(`subscribed to ${channel} via pusher`);
-});
+["sim-data", "temporal", "ticker"].forEach(pusherSubscribe);
 
 /* TODO genericize this thing */
 let simData = {};
