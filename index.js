@@ -191,7 +191,7 @@ function logTutorialData(id) {
 
 [
   [logConfigs, 1],
-  [logFutureGames, 15],
+  [logFutureGames, 60],
   [logLeague, 5],
   [logList("/database/allDivisions"), 5],
   [logList("/database/allSubleagues"), 5],
