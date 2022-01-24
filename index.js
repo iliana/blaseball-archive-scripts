@@ -3,6 +3,7 @@ import "dotenv/config";
 import manakin from "manakin";
 import Pusher from "pusher-js";
 import { dynamic as setIntervalAsyncDynamic } from "set-interval-async";
+import { useState } from "./state.js";
 import { fetch, fetchIds } from "./util.js";
 import { write, writeEntry, writeList, flatWriteList } from "./writer.js";
 
@@ -28,18 +29,10 @@ function pusherSubscribe(channel) {
 
 ["sim-data", "temporal", "ticker"].forEach(pusherSubscribe);
 
-/* TODO genericize this thing */
-let simData = {};
-let resolveSimData;
-const simDataReady = new Promise((resolve) => {
-  resolveSimData = resolve;
-});
+const [season, setSeason] = useState();
 
 const playerIds = new Set();
-let resolvePlayerIds;
-const playerIdsReady = new Promise((resolve) => {
-  resolvePlayerIds = resolve;
-});
+const [playersReady, setPlayersReady] = useState();
 
 async function logConfigs() {
   const base = "https://blaseball-configs.s3.us-west-2.amazonaws.com/";
@@ -64,13 +57,7 @@ function logList(url, query) {
 }
 
 async function logOffseasonRecap() {
-  await simDataReady;
-  const { season } = simData;
-  if (season === undefined) {
-    throw new Error("season number not found in simulation data");
-  }
-
-  const recap = await fetch("/database/offseasonRecap", { season }).then(write);
+  const recap = await fetch("/database/offseasonRecap", { season: await season() }).then(write);
   if (recap !== undefined) {
     await Promise.all(
       ["bonusResults", "decreeResults", "eventResults"]
@@ -81,36 +68,25 @@ async function logOffseasonRecap() {
 }
 
 async function logPlayerIds() {
-  await fetch("/database/playerNamesIds").then(({ body }) => {
-    if (body !== undefined) {
-      body.forEach(({ id }) => {
-        playerIds.add(id);
-      });
-    }
-    if (resolvePlayerIds !== undefined) {
-      resolvePlayerIds();
-      resolvePlayerIds = undefined;
-    }
-  });
+  const ids = await fetch("/database/playerNamesIds").then(write);
+  if (ids) {
+    ids.forEach(({ id }) => {
+      playerIds.add(id);
+    });
+    setPlayersReady();
+  }
 }
 
 async function logPlayers() {
-  await playerIdsReady;
+  await playersReady();
   await fetchIds("/database/players", [...playerIds]).then(flatWriteList);
 }
 
 async function logSimData() {
-  await fetch("/database/simulationData")
-    .then(write)
-    .then((body) => {
-      if (body) {
-        simData = body;
-        if (resolveSimData !== undefined) {
-          resolveSimData();
-          resolveSimData = undefined;
-        }
-      }
-    });
+  const body = await fetch("/database/simulationData").then(write);
+  if (body) {
+    setSeason(body.season);
+  }
 }
 
 function logSingle(url, query) {
