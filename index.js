@@ -1,7 +1,5 @@
 import "log-timestamp";
 import "dotenv/config";
-import { promisify } from "util";
-import { gunzip } from "zlib";
 import manakin from "manakin";
 import Pusher from "pusher-js";
 import { dynamic as setIntervalAsyncDynamic } from "set-interval-async";
@@ -65,9 +63,7 @@ async function logConfigs() {
 
 async function logFutureGames() {
   // fetch the full current schedule just to see what the highest day number is
-  const schedule = JSON.parse(
-    await promisify(gunzip)(Buffer.from(await fetch("/api/games/schedule").then(write), "base64"))
-  );
+  const schedule = await fetch("/api/games/schedule").then(write);
 
   // log all games played after tomorrow
   const { sim, season, day: thatsToday } = await today();
